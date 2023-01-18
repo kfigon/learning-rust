@@ -83,4 +83,22 @@ mod tests {
         ];
         assert_eq!(lex(input), expected)
     }
+
+    #[test]
+    fn lex2() {
+        let input = " somevalue";
+        let expected = vec![
+            Token::Identifier("somevalue".to_owned()),
+        ];
+        assert_eq!(lex(input), expected)
+    }
+
+    #[test]
+    fn lex3() {
+        let input = " 1234";
+        let expected = vec![
+            Token::Number("1234".to_owned()),
+        ];
+        assert_eq!(lex(input), expected)
+    }
 }
