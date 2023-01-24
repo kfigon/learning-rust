@@ -6,6 +6,7 @@ pub enum Token {
     Closing(String),
     Operator(String),
     Number(i32),
+    Boolean(bool),
     Keyword(String),
     Identifier(String),
     String(String),
@@ -59,6 +60,11 @@ pub fn lex(input: &str) -> Vec<Token> {
             let word = read_until(&mut chars, current, |c| c.is_alphanumeric());
             if is_keyword(&word) {
                 out.push(Token::Keyword(word));
+            } else if word == "false" || word == "true" {
+                match word.parse() {
+                    Ok(v) => out.push(Token::Boolean(v)),
+                    Err(_) => out.push(Token::Invalid(line_number, word)),
+                }
             } else {
                 out.push(Token::Identifier(word));
             }
@@ -276,6 +282,39 @@ mod tests {
             Token::Opening("(".to_string()),
             Token::Identifier("dbl".to_string()),
             Token::Number(2),
+            Token::Closing(")".to_string()),
+        ];
+        assert_eq!(lex(input), expected)
+    }
+
+    #[test]
+    fn lex_boolean() {
+        let input = "(define x true)
+                           (define y false)
+                           (define z(= x y))";
+        let expected = vec![
+            Token::Opening("(".to_string()),
+            Token::Keyword("define".to_string()),
+            Token::Identifier("x".to_string()),
+            Token::Boolean(true),
+            Token::Closing(")".to_string()),
+
+            Token::Opening("(".to_string()),
+            Token::Keyword("define".to_string()),
+            Token::Identifier("y".to_string()),
+            Token::Boolean(false),
+            Token::Closing(")".to_string()),
+
+            Token::Opening("(".to_string()),
+            Token::Keyword("define".to_string()),
+            Token::Identifier("z".to_string()),
+            
+            Token::Opening("(".to_string()),
+            Token::Operator("=".to_string()),
+            Token::Identifier("x".to_string()),
+            Token::Identifier("y".to_string()),
+            Token::Closing(")".to_string()),
+
             Token::Closing(")".to_string()),
         ];
         assert_eq!(lex(input), expected)

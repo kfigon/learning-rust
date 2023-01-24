@@ -28,6 +28,7 @@ pub fn parse(tkns: Vec<Token>) -> Result<Ast, CompilerError> {
             Token::Keyword(_) => todo!(),
             Token::Identifier(_) => todo!(),
             Token::String(_) => todo!(),
+            Token::Boolean(_) => todo!(),
         }
     }
 
