@@ -1,4 +1,4 @@
-use std::{iter::Peekable, slice::Iter};
+use std::{iter::Peekable, slice::IterMut};
 
 use crate::lexer::{Token};
 
@@ -42,7 +42,12 @@ impl Parser {
                         ));
                     break;
                 }
-                Token::Opening(_) => todo!(),
+                // here I'm giving up on rust, borrow checker does not allow me to do the mutation
+                // and I'm not willing to create an object for each member
+                // also I refuse to do functions, as I like to encapsulate interpreter's state when building ast
+
+                // error: second mutable borrow occurs here
+                Token::Opening(_) => todo!(), // self.parse_expression(&mut tokens), 
                 Token::Closing(_) => todo!(),
                 Token::Operator(_) => todo!(),
                 Token::Number(_) => todo!(),
@@ -52,6 +57,10 @@ impl Parser {
                 Token::Boolean(_) => todo!(),
             }
         }
+    }
+
+    fn parse_expression(&mut self, tokens: &Peekable<IterMut<Token>>) {
+
     }
 }
 
