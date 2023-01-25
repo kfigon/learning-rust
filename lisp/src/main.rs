@@ -37,7 +37,7 @@ fn interpreter_mode() {
 
         if trimmed == "quit" {
             break;
-        } else if trimmed != "" {
+        } else if !trimmed.is_empty() {
             print!("{}", data);
         }
     }
