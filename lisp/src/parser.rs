@@ -108,6 +108,10 @@ pub fn parse(tokens: Vec<Token>) -> Result<Ast, Vec<CompilerError>> {
     Ok(Ast(p.expressions))
 }
 
+pub fn eval(ast: Ast) -> Token {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use crate::lexer::lex;
@@ -182,6 +186,15 @@ mod tests {
                     ])
                 ])
             ]))
+        )
+    }
+
+    #[test]
+    fn eval_simple_math2() {
+        let tok = "(+ 3 (* 1 2))";
+        assert_eq!(
+            eval(compile(tok).unwrap()),
+            Token::Number(5)
         )
     }
 }
