@@ -116,28 +116,40 @@ pub fn eval(ast: Ast) -> Vec<Token> {
 }
 
 fn eval_expression(e: SExpression) -> Token {
-    todo!();
-    // match e {
-    //     SExpression::Atom(at) => match at {
-    //         Token::Opening(_) => unreachable!(),
-    //         Token::Closing(_) => unreachable!(),
-    //         Token::Invalid(_, _) => unreachable!(),
-    //         Token::Operator(_) => at,
-    //         Token::Number(_) => at,
-    //         Token::Boolean(_) => at,
-    //         Token::Keyword(_) => at,
-    //         Token::Identifier(_) => at,
-    //         Token::String(_) => at,
-    //     },
-    //     SExpression::List(lst) => {
-    //         for el in lst {
-    //             return match el {
-    //                 SExpression::Atom(at) => at,
-    //                 SExpression::List(lst) => lst.first().unwrap(),
-    //             }
-    //         }
-    //     },
-    // }
+    match e {
+        SExpression::Atom(at) => match at {
+            Token::Opening(_) => unreachable!(),
+            Token::Closing(_) => unreachable!(),
+            Token::Invalid(_, _) => unreachable!(),
+            Token::Operator(_) => at,
+            Token::Number(_) => at,
+            Token::Boolean(_) => at,
+            Token::Keyword(_) => at,
+            Token::Identifier(_) => at,
+            Token::String(_) => at,
+        },
+        SExpression::List(lst) => {
+            for el in lst {
+                 return match el {
+                    SExpression::Atom(at) => at,
+                    SExpression::List(lst) => {
+                        let op = lst.first().unwrap();
+                        if let SExpression::Atom(Token::Operator(o)) = op {
+                            return match o.as_str() {
+                                "+" => eval_expression(*lst.get(1).unwrap()) + eval_expression(*lst.get(2).unwrap()),
+                                "*" => eval_expression(*lst.get(1).unwrap()) * eval_expression(*lst.get(2).unwrap()),
+                                "/" => eval_expression(*lst.get(1).unwrap()) / eval_expression(*lst.get(2).unwrap()),
+                                "-" => eval_expression(*lst.get(1).unwrap()) - eval_expression(*lst.get(2).unwrap()),
+                                _ => unreachable!(),
+                            }
+                        } else {
+                            unreachable!()
+                        }
+                }
+            }
+        }
+        unreachable!()
+    }
 }
 
 #[cfg(test)]
