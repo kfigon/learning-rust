@@ -10,7 +10,7 @@ pub enum Token {
     Keyword(String),
     Identifier(String),
     String(String),
-    Invalid(usize, String),
+    Invalid(usize, String), // todo: make it a lexer error and return early
 }
 
 pub fn lex(input: &str) -> Vec<Token> {

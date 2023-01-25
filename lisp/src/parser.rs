@@ -18,6 +18,7 @@ struct Parser {
     errors: Vec<CompilerError>,
     expressions: Vec<SExpression>,
     tokens: Vec<Token>,
+    current_idx: usize, // todo: use iterators, instead of idx. I can't do it because I don't know ownership that good
 }
 
 impl Parser {
@@ -25,15 +26,24 @@ impl Parser {
         Parser { errors: vec![],
              expressions: vec![],
              tokens: tokens,
+             current_idx: 0
         }
     }
 
-    fn run(&mut self) {
-        let mut tokens  = self.tokens.iter_mut().peekable();
+    fn consume(&mut self) {
+        self.current_idx += 1;
+    }
 
-        while let Some(current) = tokens.next() {
-            let next = tokens.peek();
-            
+    fn current_token(&self) -> Option<&Token> {
+        self.tokens.get(self.current_idx)
+    }
+
+    fn peek_token(&self) -> Option<&Token> {
+        self.tokens.get(self.current_idx+1)
+    }
+
+    fn run(&mut self) {
+        while let Some(current) = self.current_token() {
             match current {
                 Token::Invalid(line, t) => {
                     self.errors.push(
@@ -42,11 +52,6 @@ impl Parser {
                         ));
                     break;
                 }
-                // here I'm giving up on rust, borrow checker does not allow me to do the mutation
-                // and I'm not willing to create an object for each member
-                // also I refuse to do functions, as I like to encapsulate interpreter's state when building ast
-
-                // error: second mutable borrow occurs here
                 Token::Opening(_) => todo!(), // self.parse_expression(&mut tokens), 
                 Token::Closing(_) => todo!(),
                 Token::Operator(_) => todo!(),
@@ -56,10 +61,11 @@ impl Parser {
                 Token::String(_) => todo!(),
                 Token::Boolean(_) => todo!(),
             }
+            self.consume();
         }
     }
 
-    fn parse_expression(&mut self, tokens: &Peekable<IterMut<Token>>) {
+    fn parse_expression(&mut self) {
 
     }
 }
