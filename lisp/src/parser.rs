@@ -71,6 +71,9 @@ impl Parser {
         while let Some(current) = self.current_token() {
             if let Token::Closing(_) = current {
                 self.consume(); // )
+                if list.is_empty() {
+                    return Err(CompilerError::IncompleteExpression("Empty list".to_string()));    
+                }
                 return Ok(SExpression::List(list));
             }
             let v = self.parse()?;
@@ -90,13 +93,9 @@ pub fn parse(tokens: Vec<Token>) -> Result<Ast, Vec<CompilerError>> {
     let mut p = Parser::new(tokens);
     while p.current_idx < p.tokens.len() {
         match p.parse() {
-            Ok(v) => {
-                println!("Adding exp {:?}", v);
-                p.expressions.push(v);
-            },
+            Ok(v) => p.expressions.push(v),
             Err(v) => {
                 p.consume();
-                println!("error {:?}", v);
                 p.errors.push(v)
             },
         }
@@ -108,8 +107,37 @@ pub fn parse(tokens: Vec<Token>) -> Result<Ast, Vec<CompilerError>> {
     Ok(Ast(p.expressions))
 }
 
-pub fn eval(ast: Ast) -> Token {
-    todo!()
+pub fn eval(ast: Ast) -> Vec<Token> {
+    let mut out = Vec::<Token>::new();
+    for t in ast.0 {
+        out.push(eval_expression(t));
+    }
+    out
+}
+
+fn eval_expression(e: SExpression) -> Token {
+    todo!();
+    // match e {
+    //     SExpression::Atom(at) => match at {
+    //         Token::Opening(_) => unreachable!(),
+    //         Token::Closing(_) => unreachable!(),
+    //         Token::Invalid(_, _) => unreachable!(),
+    //         Token::Operator(_) => at,
+    //         Token::Number(_) => at,
+    //         Token::Boolean(_) => at,
+    //         Token::Keyword(_) => at,
+    //         Token::Identifier(_) => at,
+    //         Token::String(_) => at,
+    //     },
+    //     SExpression::List(lst) => {
+    //         for el in lst {
+    //             return match el {
+    //                 SExpression::Atom(at) => at,
+    //                 SExpression::List(lst) => lst.first().unwrap(),
+    //             }
+    //         }
+    //     },
+    // }
 }
 
 #[cfg(test)]
@@ -127,6 +155,15 @@ mod tests {
         assert_eq!(
             compile(tok),
             Err(vec![CompilerError::InvalidToken("Invalid token on 1: \"invalid string".to_string())])
+        )
+    }
+
+    #[test]
+    fn empty_list() {
+        let tok = "()";
+        assert_eq!(
+            compile(tok),
+            Err(vec![CompilerError::IncompleteExpression("Empty list".to_string())])
         )
     }
 
@@ -194,7 +231,7 @@ mod tests {
         let tok = "(+ 3 (* 1 2))";
         assert_eq!(
             eval(compile(tok).unwrap()),
-            Token::Number(5)
+            vec![Token::Number(5)]
         )
     }
 }
