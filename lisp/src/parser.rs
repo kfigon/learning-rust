@@ -12,6 +12,7 @@ pub enum SExpression {
 #[derive(Debug, PartialEq)]
 pub enum CompilerError {
     InvalidToken(String),
+    IncompleteExpression(String),
 }
 
 struct Parser {
@@ -76,13 +77,13 @@ impl Parser {
         while let Some(current) = self.current_token() {
             if let Token::Closing(_) = current {
                 self.consume();
-                break;
+                return Ok(SExpression::List(list));
             }
             let v = self.parse()?;
             list.push(v);
             self.consume();
         }
-        return Ok(SExpression::List(list));
+        return Err(CompilerError::IncompleteExpression("Found unmatched list".to_string()));
     }
 }
 
