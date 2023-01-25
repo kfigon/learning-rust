@@ -1,5 +1,3 @@
-use std::{iter::Peekable, slice::IterMut};
-
 use crate::lexer::{Token};
 
 #[derive(Debug, PartialEq)]
@@ -7,6 +5,8 @@ pub struct Ast(Vec<SExpression>);
 
 #[derive(Debug, PartialEq)]
 pub enum SExpression {
+    Atom(Token),
+    List(Vec<SExpression>)
 }
 
 #[derive(Debug, PartialEq)]
@@ -42,31 +42,47 @@ impl Parser {
         self.tokens.get(self.current_idx+1)
     }
 
-    fn run(&mut self) {
-        while let Some(current) = self.current_token() {
-            match current {
-                Token::Invalid(line, t) => {
-                    self.errors.push(
-                        CompilerError::InvalidToken(
-                            format!("Invalid token on {line}: {}", t.to_owned())
-                        ));
-                    break;
-                }
-                Token::Opening(_) => todo!(), // self.parse_expression(&mut tokens), 
-                Token::Closing(_) => todo!(),
-                Token::Operator(_) => todo!(),
-                Token::Number(_) => todo!(),
-                Token::Keyword(_) => todo!(),
-                Token::Identifier(_) => todo!(),
-                Token::String(_) => todo!(),
-                Token::Boolean(_) => todo!(),
-            }
-            self.consume();
+    fn invalid_token_error(&self, line: usize, token: String) -> CompilerError {
+        CompilerError::InvalidToken(
+                format!("Invalid token on {line}: {}", token))
+    }
+
+    fn parse(&mut self) -> Result<SExpression, CompilerError> {
+        let current = self.current_token().unwrap();
+
+        match current {
+            Token::Invalid(line, t) => return Err(self.invalid_token_error(*line, t.clone())),
+            Token::Opening(_) => return self.parse_expression(),
+            Token::Closing(_) => todo!(),
+            Token::Operator(_) => return Ok(SExpression::Atom(current.clone())),
+            Token::Number(_) => return Ok(SExpression::Atom(current.clone())),
+            Token::Keyword(_) => return Ok(SExpression::Atom(current.clone())),
+            Token::Identifier(_) => return Ok(SExpression::Atom(current.clone())),
+            Token::String(_) => return Ok(SExpression::Atom(current.clone())),
+            Token::Boolean(_) => return Ok(SExpression::Atom(current.clone())),
         }
     }
 
-    fn parse_expression(&mut self) {
+    pub fn run(&mut self) {
+        match self.parse() {
+            Ok(v) => self.expressions.push(v),
+            Err(v) => self.errors.push(v),
+        }
+    }
 
+    fn parse_expression(&mut self) -> Result<SExpression, CompilerError> {
+        self.consume(); // (
+        let mut list: Vec<SExpression> = vec![];
+        while let Some(current) = self.current_token() {
+            if let Token::Closing(_) = current {
+                self.consume();
+                break;
+            }
+            let v = self.parse()?;
+            list.push(v);
+            self.consume();
+        }
+        return Ok(SExpression::List(list));
     }
 }
 
@@ -93,17 +109,22 @@ mod tests {
         let tok = "(define x \"invalid string";
         assert_eq!(
             compile(tok),
-            Err(vec![CompilerError::InvalidToken("\"invalid string".to_string())])
+            Err(vec![CompilerError::InvalidToken("Invalid token on 1: \"invalid string".to_string())])
         )
     }
 
     #[test]
     fn parse_simple_math() {
-        todo!();
         let tok = "(+ 3 1)";
         assert_eq!(
             compile(tok),
-            Ok(Ast(vec![]))
+            Ok(Ast(vec![
+                SExpression::List(vec![
+                    SExpression::Atom(Token::Operator("+".to_string())),
+                    SExpression::Atom(Token::Number(3)),
+                    SExpression::Atom(Token::Number(1)),
+                ])
+            ]))
         )
     }
 }

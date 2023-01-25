@@ -1,6 +1,6 @@
 use std::{iter::Peekable, str::Chars};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Token {
     Opening(String),
     Closing(String),
@@ -12,6 +12,7 @@ pub enum Token {
     String(String),
     Invalid(usize, String), // todo: make it a lexer error and return early
 }
+
 
 pub fn lex(input: &str) -> Vec<Token> {
     let mut chars = input.chars().peekable();
