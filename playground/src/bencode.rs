@@ -76,10 +76,9 @@ fn decode_str(s: &str) -> Result<String, ErrorMsg> {
 
     let mut out = String::new();
     for _ in 0..len {
-        if let Some(c) = chars.next() {
-            out.push(c);
-        } else {
-            return Err(ErrorMsg("invalid len"));
+        match chars.next() {
+            Some(c) => out.push(c),
+            _ => return Err(ErrorMsg("invalid len")),
         }
     }
 
