@@ -25,6 +25,16 @@ fn encode_str_test() {
 }
 
 #[test]
+#[ignore = "todo"]
+fn decode_dict_test() {
+    let hash: HashMap<String, BencodeObj> = HashMap::from([
+        ("foo".to_owned(), BencodeObj::Int(2)),
+    ]);
+
+    assert_eq!(Ok(BencodeObj::Dict(hash)), decode_generic_str("d3:fooi2ee"));
+}
+
+#[test]
 fn decode_str_test() {
     assert_eq!(Ok(BencodeObj::Str("foo".to_owned())), decode_generic_str("3:foo"));
     assert_eq!(Ok(BencodeObj::Str("asdfgqwe123r".to_owned())), decode_generic_str("12:asdfgqwe123r"));
@@ -98,6 +108,19 @@ fn decode_generic_str(s: &str) -> Result<BencodeObj, ErrorMsg> {
     match s.chars().next() {
         Some('1'..='9') => decode_str(s).map(|v| BencodeObj::Str(v)),
         Some('i') => decode_int(s).map(|v| BencodeObj::Int(v)),
+        Some('d') => decode_dict(s).map(|v| BencodeObj::Dict(v)),
         _ => Err(ErrorMsg("invalid str")),
     }
+}
+
+fn decode_dict(s: &str) -> Result<HashMap<String, BencodeObj>, ErrorMsg> {
+    let mut chars = s.chars();
+    match (chars.next(), chars.next_back()) {
+        (Some('d'), Some('e')) => (),
+        _ => return Err(ErrorMsg("invalid dict")),
+    }
+
+    let out: HashMap<String, BencodeObj> = HashMap::new();
+
+    todo!()
 }
