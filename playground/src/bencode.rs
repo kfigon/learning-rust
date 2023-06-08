@@ -27,10 +27,10 @@ fn decode_int(i: &str) -> Result<i32, ErrorMsg> {
         return Err(ErrorMsg("invalid len"));
     }
     let mut chars = i.chars();
-    match (chars.nth(0), chars.nth_back(0)) {
+    match (chars.next(), chars.next_back()) {
         (Some('i'), Some('e')) => (),
         _ => return Err(ErrorMsg("missing end or beginning tags")),
     }
 
-    i[1..i.len()-1].parse::<i32>().map_err(|_| ErrorMsg("cant parse"))
+    chars.as_str().parse::<i32>().map_err(|_| ErrorMsg("cant parse"))
 }
