@@ -88,10 +88,10 @@ fn decode_str(s: &str) -> Result<String, ErrorMsg> {
 
 #[derive(Debug, PartialEq, Eq)]
 enum BencodeObj {
-    Str(String),
-    Int(i32),
-    List(Vec<BencodeObj>),
-    Dict(HashMap<String, BencodeObj>),
+    Str(String), // 3:foo
+    Int(i32), //i1234e
+    List(Vec<BencodeObj>), //l i1e i2e 3:str e // without spaces
+    Dict(HashMap<String, BencodeObj>), //d 3:foo i1e 3:str 3:foo e // without spaces
 }
 
 fn decode_generic_str(s: &str) -> Result<BencodeObj, ErrorMsg> {
