@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, str::Chars};
 
 #[test]
 fn encode_int_test() {
@@ -25,13 +25,13 @@ fn encode_str_test() {
 }
 
 #[test]
-#[ignore = "todo"]
 fn decode_dict_test() {
     let hash: HashMap<String, BencodeObj> = HashMap::from([
         ("foo".to_owned(), BencodeObj::Int(2)),
+        ("bar".to_owned(), BencodeObj::Str("oopsie".to_owned())),
     ]);
 
-    assert_eq!(Ok(BencodeObj::Dict(hash)), decode_generic_str("d3:fooi2ee"));
+    assert_eq!(Ok(BencodeObj::Dict(hash)), decode_generic_str("d3:fooi2e3:bar6:oopsiee"));
 }
 
 #[test]
@@ -61,12 +61,23 @@ fn decode_int(i: &str) -> Result<i32, ErrorMsg> {
         return Err(ErrorMsg("invalid len"));
     }
     let mut chars = i.chars();
-    match (chars.next(), chars.next_back()) {
-        (Some('i'), Some('e')) => (),
+    match chars.next() {
+        Some('i') => (),
         _ => return Err(ErrorMsg("missing end or beginning tags")),
     }
 
-    chars.as_str().parse::<i32>().map_err(|_| ErrorMsg("cant parse"))
+    let mut num = String::new();
+
+    while let Some(c) = chars.next() {
+        if c == 'e' {
+            break;
+        }
+        num.push(c)
+    }
+
+    let v = num.parse::<i32>().map_err(|_| ErrorMsg("cant parse"))?;
+
+    Ok(v)
 }
 
 fn encode_str(s: &str) -> String {
@@ -120,7 +131,46 @@ fn decode_dict(s: &str) -> Result<HashMap<String, BencodeObj>, ErrorMsg> {
         _ => return Err(ErrorMsg("invalid dict")),
     }
 
-    let out: HashMap<String, BencodeObj> = HashMap::new();
+    let mut out: HashMap<String, BencodeObj> = HashMap::new();
 
-    todo!()
+    loop {
+        let key = decode_str(chars.as_str())?;
+        advance_iter(&mut chars, &BencodeObj::Str(key.clone()));
+        let val = decode_generic_str(chars.as_str())?;
+        advance_iter(&mut chars, &val);
+
+        out.insert(key, val);
+        if chars.as_str().len() == 0 {
+            break;
+        }
+    }
+
+    Ok(out)
+}
+
+fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
+    match obj {
+        BencodeObj::Str(s) => {
+            let f = s.len() as f64 + 1.0;
+            let len = f.log10().ceil() as usize;
+            for _ in (0..len) {
+                chars.next();
+            }
+            chars.next();
+            for _ in (0..s.len()) {
+                chars.next();
+            }
+        },
+        BencodeObj::Int(i) => {
+            chars.next();
+            let f = *i as f64 + 1.0;
+            let len = f.log10().ceil() as usize;
+            for _ in (0..len) {
+                chars.next();
+            }
+            chars.next();
+        }
+        BencodeObj::List(_) => todo!(),
+        BencodeObj::Dict(_) => todo!(),
+    }
 }
