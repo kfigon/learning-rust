@@ -1,18 +1,5 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap,HashSet};
 
-fn main() {
-    println!("Hello, world!");
-    let data = vec![
-        ("A","B"),
-        ("A","C"),
-        ("C","D"),
-        ("E","F"),
-    ];
-    let mut g = Graph::new();
-    data.iter().for_each(|d| g.connect(d.0, d.1));
-    println!("{:?}", g);
-    println!("{:?}", g.collect())
-}
 
 #[derive(Debug)]
 struct Graph(HashMap<String, HashSet<String>>);
@@ -32,7 +19,7 @@ impl Graph {
             .or_insert(HashSet::from([a.to_string()]));
     }
 
-    fn collect(self) -> Vec<String> {
+    fn collect(&self) -> Vec<String> {
         let mut visited = HashSet::<String>::new();
         fn dfs(graph: &Graph, visited: &mut HashSet<String>, node: &String) {
             if visited.contains(node) {
@@ -47,6 +34,21 @@ impl Graph {
         }
 
         self.0.keys().for_each(|k| dfs(&self, &mut visited, k));
-        visited.into_iter().collect()
+        let mut v = visited.into_iter().collect::<Vec<String>>();
+        v.sort();
+        v
     }
+}
+
+#[test]
+fn graph_works() {
+    let data = vec![
+        ("A","B"),
+        ("A","C"),
+        ("C","D"),
+        ("E","F"),
+    ];
+    let mut g = Graph::new();
+    data.iter().for_each(|d| g.connect(d.0, d.1));
+    assert_eq!(g.collect(), vec!["A", "B", "C", "D", "E", "F"])
 }
