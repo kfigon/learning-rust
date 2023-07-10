@@ -20,7 +20,6 @@ impl Dao {
         self.conn.execute(sql, par)
     }
 
-    // fn query<P: Params>(&self, sql: &str, par: P) -> Result<Vec<Person>, Error> {
     fn query<P: Params>(&self, sql: &str, par: P) -> Result<Vec<Person>, Error> {
         let mut stmt = self.conn.prepare(sql)?;
 
