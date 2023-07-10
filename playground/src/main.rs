@@ -7,6 +7,7 @@ mod splitter;
 mod trie;
 mod graph;
 mod simple_lexer;
+mod tree;
 
 fn main() {
     println!("hello")
