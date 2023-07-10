@@ -1,12 +1,9 @@
 use std::{iter::Peekable, str::Chars};
 
-fn main() {
-    println!("Hello, world!");
-}
 
 #[cfg(test)]
 mod tests {
-    use crate::*;
+    use super::*;
 
     #[test]
     fn lex1() {
