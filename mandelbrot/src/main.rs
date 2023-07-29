@@ -1,4 +1,4 @@
-use std::{env, collections::HashMap, str::FromStr};
+use std::{env, collections::HashMap, str::FromStr, os, fs::File, io::{BufWriter, Write}};
 
 use num::Complex;
 
@@ -17,7 +17,10 @@ fn main() {
     
     let num: Complex<f64> = Complex {re: num.0, im: num.1};
 
-    println!("{:?}, {:?}", bounds, num)
+    println!("{:?}, {:?}", bounds, num);
+
+    let img = calculate_mandelbrot(bounds, num);
+    render(img);
 }
 
 fn parse(args: Vec<String>) -> HashMap<String, String> {
@@ -63,3 +66,22 @@ fn split<T: FromStr>(s: &str, sep: &str) -> Result<(T,T), String> {
     Ok((first, second))
 }
 
+fn calculate_mandelbrot(bound: Bound, num: Complex<f64>) -> Vec<Vec<i8>> {
+    todo!()
+}
+
+fn render(pixels: Vec<Vec<i8>>) {
+    let mut data = String::from("P1\n");
+    data += format!("{} {}\n", pixels.len(), pixels[0].len()).as_str();
+
+    for row in pixels {
+        for pix in row {
+            data += format!("{pix}").as_str();
+        }
+        data += "\n"
+    }
+
+    let f = File::create("mandel.PBM").expect("Unable to create file");
+    let mut f = BufWriter::new(f);
+    f.write_all(data.as_bytes()).expect("Unable to write data");
+}
