@@ -3,7 +3,7 @@ use std::{env, collections::HashMap, str::FromStr, fs::File, io::{BufWriter, Wri
 use num::Complex;
 
 fn main() {
-    let args_raw = env::args().into_iter().collect::<Vec<_>>();
+    let args_raw = env::args().skip(1).collect::<Vec<_>>();
     let mut args: HashMap<String, String> = parse(args_raw);
 
     println!("provided args {:?}", args);
@@ -29,9 +29,7 @@ fn main() {
     render(&bounds, img);
 }
 
-fn parse(mut args: Vec<String>) -> HashMap<String, String> {
-    args.remove(0);
-    
+fn parse(args: Vec<String>) -> HashMap<String, String> {
     args.chunks(2)
     .filter_map(|pair| {
         if pair.len() == 2 {
@@ -110,7 +108,6 @@ fn mandel(c: Complex<f64>) -> Option<u8> {
 fn render(bound: &Bound, pixels: Vec<u8>) {
     let data = pixels.iter().enumerate()
         .fold(String::from(format!("P2\n{} {}\n", bound.height, bound.width)), |data, pair| {
-
             data + &pair.1.to_string() + if pair.0 != 0 && pair.0 % bound.width == 0 { "\n" } else { " " }
         });
 
