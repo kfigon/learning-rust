@@ -108,18 +108,11 @@ fn mandel(c: Complex<f64>) -> Option<u8> {
 }
 
 fn render(bound: &Bound, pixels: Vec<u8>) {
-    let mut data = String::from("P2\n");
-    data += format!("{} {}\n", bound.height, bound.width).as_str();
+    let data = pixels.iter().enumerate()
+        .fold(String::from(format!("P2\n{} {}\n", bound.height, bound.width)), |data, pair| {
 
-    for (i, pix) in pixels.iter().enumerate() {
-        data += format!("{pix}").as_str();
-
-        if i != 0 && i % bound.width == 0 {
-            data += "\n";
-        } else {
-            data += " ";
-        }
-    }
+            data + &pair.1.to_string() + if pair.0 != 0 && pair.0 % bound.width == 0 { "\n" } else { " " }
+        });
 
     let f = File::create("mandel.PGM").expect("Unable to create file");
     let mut f = BufWriter::new(f);
