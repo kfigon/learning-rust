@@ -1,4 +1,4 @@
-use std::{env, collections::HashMap, str::FromStr, os, fs::File, io::{BufWriter, Write}};
+use std::{env, collections::HashMap, str::FromStr, fs::File, io::{BufWriter, Write}};
 
 use num::Complex;
 
@@ -6,24 +6,32 @@ fn main() {
     let args_raw = env::args().into_iter().collect::<Vec<_>>();
     let mut args: HashMap<String, String> = parse(args_raw);
 
+    println!("provided args {:?}", args);
+
     let bounds = args.entry("-size".to_string())
         .or_default()
         .parse::<Bound>()
         .expect("cant find -size INTxINT");
 
-    let num = split(args.entry("-num".to_string())
+    let start = split(args.entry("-start".to_string())
         .or_default(), ",")
-        .expect("cant find -num FLOAT,FLOAT");
-    
-    let num: Complex<f64> = Complex {re: num.0, im: num.1};
+        .expect("cant find -start FLOAT,FLOAT");
+    let start: Complex<f64> = Complex {re: start.0, im: start.1};
 
-    println!("{:?}, {:?}", bounds, num);
+    let end = split(args.entry("-end".to_string())
+        .or_default(), ",")
+        .expect("cant find -end FLOAT,FLOAT");
+    let end: Complex<f64> = Complex {re: end.0, im: end.1};
 
-    let img = calculate_mandelbrot(bounds, num);
-    render(img);
+    println!("{:?}, {:?}, {:?}", bounds, start, end);
+
+    let img = calculate_mandelbrot(&bounds, start, end);
+    render(&bounds, img);
 }
 
-fn parse(args: Vec<String>) -> HashMap<String, String> {
+fn parse(mut args: Vec<String>) -> HashMap<String, String> {
+    args.remove(0);
+    
     args.chunks(2)
     .filter_map(|pair| {
         if pair.len() == 2 {
@@ -66,22 +74,54 @@ fn split<T: FromStr>(s: &str, sep: &str) -> Result<(T,T), String> {
     Ok((first, second))
 }
 
-fn calculate_mandelbrot(bound: Bound, num: Complex<f64>) -> Vec<Vec<i8>> {
-    todo!()
+fn calculate_mandelbrot(bound: &Bound, start: Complex<f64>, end: Complex<f64>) -> Vec<u8> {
+    let mut out = vec![0; bound.height*bound.width];
+
+    for row in 0..bound.height {
+        for col in 0..bound.width {
+            let point = pixel_to_point(&bound, &start, &end, (row,col));
+            out[row * bound.height + col] = mandel(point).unwrap_or_default();
+        }
+    }
+    out
 }
 
-fn render(pixels: Vec<Vec<i8>>) {
-    let mut data = String::from("P1\n");
-    data += format!("{} {}\n", pixels.len(), pixels[0].len()).as_str();
+fn pixel_to_point(bound: &Bound, start: &Complex<f64>, end: &Complex<f64>, point: (usize, usize)) -> Complex<f64> {
+    let w = end.re - start.re;
+    let h = start.im - end.im;
 
-    for row in pixels {
-        for pix in row {
-            data += format!("{pix}").as_str();
+    Complex { 
+        re: start.re + point.0 as f64 * w / bound.width as f64, 
+        im: start.im - point.1 as f64 * h / bound.height as f64 
+    }
+}
+
+fn mandel(c: Complex<f64>) -> Option<u8> {
+    let mut z = Complex { re: 0.0, im: 0.0};
+    for i in 0..255 {
+        if z.norm_sqr() > 4.0 {
+            return Some(i);
         }
-        data += "\n"
+        z = z * z + c;
+    }
+    None
+}
+
+fn render(bound: &Bound, pixels: Vec<u8>) {
+    let mut data = String::from("P2\n");
+    data += format!("{} {}\n", bound.height, bound.width).as_str();
+
+    for (i, pix) in pixels.iter().enumerate() {
+        data += format!("{pix}").as_str();
+
+        if i != 0 && i % bound.width == 0 {
+            data += "\n";
+        } else {
+            data += " ";
+        }
     }
 
-    let f = File::create("mandel.PBM").expect("Unable to create file");
+    let f = File::create("mandel.PGM").expect("Unable to create file");
     let mut f = BufWriter::new(f);
     f.write_all(data.as_bytes()).expect("Unable to write data");
 }
