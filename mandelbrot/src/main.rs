@@ -33,7 +33,7 @@ fn parse(args: Vec<String>) -> HashMap<String, String> {
     args.chunks(2)
     .filter_map(|pair| {
         if pair.len() == 2 {
-            Some((pair[0].to_string(),pair[1].to_string()))
+            Some((pair[0].to_string(), pair[1].to_string()))
         } else {
             None
         }
@@ -108,7 +108,7 @@ fn mandel(c: Complex<f64>) -> Option<u8> {
 fn render(bound: &Bound, pixels: Vec<u8>) {
     let data = pixels.iter().enumerate()
         .fold(String::from(format!("P2\n{} {}\n", bound.height, bound.width)), |data, pair| {
-            data + &pair.1.to_string() + if pair.0 != 0 && pair.0 % bound.width == 0 { "\n" } else { " " }
+            data + &pair.1.to_string() + if (pair.0+1) % bound.width == 0 { "\n" } else { " " }
         });
 
     let f = File::create("mandel.PGM").expect("Unable to create file");
