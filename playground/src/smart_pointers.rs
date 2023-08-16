@@ -35,6 +35,7 @@ mod test {
         owner2.b.push(base.clone());
         assert_eq!(owner1.b.iter().map(|v| v.a.as_str()).collect::<Vec<&str>>(), vec!["data"]);
         assert_eq!(owner2.b.iter().map(|v| v.a.as_str()).collect::<Vec<&str>>(), vec!["data"]);
+        assert_eq!(Rc::strong_count(&base), 3);
     }
 
     #[derive(Debug, Clone, Copy, PartialEq)]
