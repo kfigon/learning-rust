@@ -9,6 +9,7 @@ mod graph;
 mod simple_lexer;
 mod tree;
 mod smart_pointers;
+mod traits;
 
 fn main() {
     println!("hello");
