@@ -8,7 +8,8 @@ mod trie;
 mod graph;
 mod simple_lexer;
 mod tree;
+mod smart_pointers;
 
 fn main() {
-    println!("hello")
+    println!("hello");
 }

@@ -107,6 +107,7 @@ fn decode_str(s: &str) -> Result<String, ErrorMsg> {
     Ok(out)
 }
 
+#[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq)]
 enum BencodeObj {
     Str(String), // 3:foo
@@ -153,11 +154,11 @@ fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
         BencodeObj::Str(s) => {
             let f = s.len() as f64 + 1.0;
             let len = f.log10().ceil() as usize;
-            for _ in (0..len) {
+            for _ in 0..len {
                 chars.next();
             }
             chars.next();
-            for _ in (0..s.len()) {
+            for _ in 0..s.len() {
                 chars.next();
             }
         },
@@ -165,7 +166,7 @@ fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
             chars.next();
             let f = *i as f64 + 1.0;
             let len = f.log10().ceil() as usize;
-            for _ in (0..len) {
+            for _ in 0..len {
                 chars.next();
             }
             chars.next();

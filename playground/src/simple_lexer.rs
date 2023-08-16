@@ -54,8 +54,6 @@ fn lexer(input: &str) -> Vec<Token> {
     let is_keyword = |word: &String| word == "if" || word == "for" || word == "let";
 
     while let Some(current_char) = chars.next() {
-        let next = chars.peek();
-
         if current_char.is_whitespace() {
             continue;
         } else if current_char == ';' {

@@ -85,16 +85,16 @@ fn multiple_trie() {
     t.add("hello");
     t.add("hell");
     
-    assertEq(t.find("a"), vec!["apple", "ape"]);
-    assertEq(t.find("ap"), vec!["apple", "ape"]);
-    assertEq(t.find("app"), vec!["apple"]);
-    assertEq(t.find("h"), vec!["hi", "hell", "hello"]);
-    assertEq(t.find("hell"), vec!["hell", "hello"]);
-    assertEq(t.find("hello"), vec!["hello"]);
-    assertEq(t.find(""), vec!["apple", "ape", "hi", "hello", "hell"]);
+    assert_eqq(t.find("a"), vec!["apple", "ape"]);
+    assert_eqq(t.find("ap"), vec!["apple", "ape"]);
+    assert_eqq(t.find("app"), vec!["apple"]);
+    assert_eqq(t.find("h"), vec!["hi", "hell", "hello"]);
+    assert_eqq(t.find("hell"), vec!["hell", "hello"]);
+    assert_eqq(t.find("hello"), vec!["hello"]);
+    assert_eqq(t.find(""), vec!["apple", "ape", "hi", "hello", "hell"]);
 }
 
-fn assertEq(first: Vec<String>, second: Vec<&str>) {
+fn assert_eqq(first: Vec<String>, second: Vec<&str>) {
     assert_eq!(first.len(), second.len());
     first.iter().for_each(|v| assert!(second.contains(&v.as_str())));
     second.iter().for_each(|&v| assert!(first.contains(&String::from(v))));
