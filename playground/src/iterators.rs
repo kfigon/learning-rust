@@ -132,7 +132,7 @@ struct Config {
 impl TryFrom<HashMap<String,String>> for Config {
     type Error = String;
 
-    fn try_from(map: HashMap<String,String>) -> Result<Self, Self::Error> {        
+    fn try_from(map: HashMap<String,String>) -> Result<Self, Self::Error> {
         let foo = map.get("foo")
             .map(|v| v)
             .ok_or("missing foo".to_string())?
