@@ -113,3 +113,35 @@ fn collect_args_pairs_with_redundant_key() {
         ("asd".to_string(), "123".to_string()),
     ]));
 }
+
+#[test]
+fn collect_args_pairs_to_struct() {
+    let raw = vec!["the path", "foo", "bar", "asd", "123", "skip meh"];
+    let args = raw.iter().map(|v|v.to_string());
+    let res: Config = collect_args(args).try_into().expect("failed to parse data");
+
+    assert_eq!(res, Config{foo: "bar".to_owned(), asd: 123});
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct Config {
+    foo: String,
+    asd: i32,
+}
+
+impl TryFrom<HashMap<String,String>> for Config {
+    type Error = String;
+
+    fn try_from(map: HashMap<String,String>) -> Result<Self, Self::Error> {        
+        let foo = map.get("foo")
+            .map(|v| v)
+            .ok_or("missing foo".to_string())?
+            .to_owned();
+        
+        let asd = map.get("asd")
+            .ok_or("missing asd".to_string())?
+            .parse::<i32>().map_err(|_| "parsing error")?;
+
+        Ok(Self { foo, asd })
+    }
+}
