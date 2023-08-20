@@ -35,6 +35,22 @@ fn decode_dict_test() {
 }
 
 #[test]
+fn decode_nested_dict_test() {
+    let hash: HashMap<String, BencodeObj> = HashMap::from([
+        ("foo".to_owned(), BencodeObj::Int(2)),
+        ("bar".to_owned(), BencodeObj::List(vec![
+            BencodeObj::Str("oopsie".to_owned()),
+            BencodeObj::Int(5),
+            BencodeObj::Dict(HashMap::from([
+                ("x".to_owned(), BencodeObj::Int(123)),
+            ]))
+        ])),
+    ]);
+
+    assert_eq!(Ok(BencodeObj::Dict(hash)), decode_generic_str("d3:fooi2e3:barl6:oopsiei5ed1:xi123eeee"));
+}
+
+#[test]
 fn decode_str_test() {
     assert_eq!(Ok(BencodeObj::Str("foo".to_owned())), decode_generic_str("3:foo"));
     assert_eq!(Ok(BencodeObj::Str("asdfgqwe123r".to_owned())), decode_generic_str("12:asdfgqwe123r"));
@@ -192,13 +208,18 @@ fn decode_dict(s: &str) -> Result<HashMap<String, BencodeObj>, ErrorMsg> {
 }
 
 fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
+
+    let advance_for_len = |len: i32, chars: &mut Chars<'_>| {
+        let f = len as f64 + 1.0;
+        let len = f.log10().ceil() as usize;
+        for _ in 0..len {
+            chars.next();
+        }
+    };
+
     match obj {
         BencodeObj::Str(s) => {
-            let f = s.len() as f64 + 1.0;
-            let len = f.log10().ceil() as usize;
-            for _ in 0..len {
-                chars.next();
-            }
+            advance_for_len(s.len() as i32, chars);
             chars.next();
             for _ in 0..s.len() {
                 chars.next();
@@ -206,11 +227,8 @@ fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
         },
         BencodeObj::Int(i) => {
             chars.next();
-            let f = *i as f64 + 1.0;
-            let len = f.log10().ceil() as usize;
-            for _ in 0..len {
-                chars.next();
-            }
+            advance_for_len(*i, chars);
+
             chars.next();
         }
         BencodeObj::List(v) => {
