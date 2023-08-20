@@ -49,6 +49,25 @@ fn decode_str_test() {
     assert_eq!(Err(ErrorMsg("missing len")), decode_generic_str("4asd"));
 }
 
+#[test]
+fn decode_list_test() {
+    assert_eq!(Ok(BencodeObj::List(vec![
+        BencodeObj::Int(12),
+        BencodeObj::Int(2),
+        BencodeObj::Str("str".to_owned()),
+    ])), decode_generic_str("li12ei2e3:stre"));
+    
+    assert_eq!(Ok(BencodeObj::List(vec![
+        BencodeObj::Int(12),
+        BencodeObj::List(vec![
+            BencodeObj::Int(2),
+            BencodeObj::Str("str".to_owned()),
+        ]),
+    ])), decode_generic_str("li12eli2e3:stree"));
+
+    assert_eq!(Err(ErrorMsg("invalid list")), decode_generic_str("li1ei2e3:str"));
+}
+
 #[derive(Debug, PartialEq, Eq)]
 struct ErrorMsg(&'static str);
 
@@ -121,8 +140,31 @@ fn decode_generic_str(s: &str) -> Result<BencodeObj, ErrorMsg> {
         Some('1'..='9') => decode_str(s).map(|v| BencodeObj::Str(v)),
         Some('i') => decode_int(s).map(|v| BencodeObj::Int(v)),
         Some('d') => decode_dict(s).map(|v| BencodeObj::Dict(v)),
+        Some('l') => decode_list(s).map(|v| BencodeObj::List(v)),
         _ => Err(ErrorMsg("invalid str")),
     }
+}
+
+fn decode_list(s: &str) -> Result<Vec<BencodeObj>, ErrorMsg> {
+    let mut chars = s.chars();
+    let mut out: Vec<BencodeObj> = Vec::new();
+
+    match (chars.next(), chars.next_back()) {
+        (Some('l'), Some('e')) => (),
+        _ => return Err(ErrorMsg("invalid list")),
+    }
+
+    loop {
+        let v = decode_generic_str(chars.as_str())?;
+        advance_iter(&mut chars, &v);
+
+        out.push(v);
+        if chars.as_str().len() == 0 {
+            break;
+        }
+    }
+
+    Ok(out)
 }
 
 fn decode_dict(s: &str) -> Result<HashMap<String, BencodeObj>, ErrorMsg> {
@@ -171,7 +213,20 @@ fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
             }
             chars.next();
         }
-        BencodeObj::List(_) => todo!(),
-        BencodeObj::Dict(_) => todo!(),
+        BencodeObj::List(v) => {
+            chars.next();
+            for el in v {
+                advance_iter(chars, &el)
+            }
+            chars.next();
+        },
+        BencodeObj::Dict(v) => {
+            chars.next();
+            for el in v {
+                advance_iter(chars, &BencodeObj::Str(el.0.to_string()));
+                advance_iter(chars, &el.1)
+            }
+            chars.next();
+        }
     }
 }
