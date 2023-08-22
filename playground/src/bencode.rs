@@ -208,7 +208,6 @@ fn decode_dict(s: &str) -> Result<HashMap<String, BencodeObj>, ErrorMsg> {
 }
 
 fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
-
     let advance_for_len = |len: i32, chars: &mut Chars<'_>| {
         let f = len as f64 + 1.0;
         let len = f.log10().ceil() as usize;

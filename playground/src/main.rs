@@ -10,6 +10,7 @@ mod simple_lexer;
 mod tree;
 mod smart_pointers;
 mod traits;
+mod ref_traits;
 
 fn main() {
     println!("hello");
