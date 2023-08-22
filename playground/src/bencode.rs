@@ -66,6 +66,38 @@ fn decode_str_test() {
 }
 
 #[test]
+fn encode_object_test() {
+    assert_eq!(BencodeObj::Str("foo".to_owned()).encode(), "3:foo");
+    assert_eq!(BencodeObj::Int(123).encode(), "i123e");
+    
+    assert_eq!(BencodeObj::List(vec![
+        BencodeObj::Int(12),
+        BencodeObj::Int(2),
+        BencodeObj::Str("str".to_owned()),
+    ]).encode(), "li12ei2e3:stre");
+    
+    assert_eq!(BencodeObj::List(vec![
+        BencodeObj::Int(12),
+        BencodeObj::List(vec![
+            BencodeObj::Int(2),
+            BencodeObj::Str("str".to_owned()),
+        ]),
+    ]).encode(), "li12eli2e3:stree");
+
+    let hash: HashMap<String, BencodeObj> = HashMap::from([
+        ("bar".to_owned(), BencodeObj::List(vec![
+            BencodeObj::Str("oopsie".to_owned()),
+            BencodeObj::Int(5),
+            BencodeObj::Dict(HashMap::from([
+                ("x".to_owned(), BencodeObj::Int(123)),
+            ]))
+        ]))
+    ]);
+
+    assert_eq!(BencodeObj::Dict(hash).encode(), "d3:barl6:oopsiei5ed1:xi123eeee");
+}
+
+#[test]
 fn decode_list_test() {
     assert_eq!(Ok(BencodeObj::List(vec![
         BencodeObj::Int(12),
@@ -149,6 +181,23 @@ enum BencodeObj {
     Int(i32), //i1234e
     List(Vec<BencodeObj>), //l i1e i2e 3:str e // without spaces
     Dict(HashMap<String, BencodeObj>), //d 3:foo i1e 3:str 3:foo e // without spaces
+}
+
+impl BencodeObj {
+    fn encode(&self) -> String {
+        match self {
+            BencodeObj::Str(v) => encode_str(v),
+            BencodeObj::Int(v) => encode_int(*v),
+            BencodeObj::List(v) => {
+                let els = v.iter().map(|el| el.encode());
+                format!("l{}e", els.collect::<String>())
+            },
+            BencodeObj::Dict(v) => {
+                let els = v.iter().map(|(key, val)| format!("{}{}", encode_str(key), val.encode()));
+                format!("d{}e", els.collect::<String>())
+            },
+        }
+    }
 }
 
 fn decode_generic_str(s: &str) -> Result<BencodeObj, ErrorMsg> {
