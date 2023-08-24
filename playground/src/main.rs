@@ -12,6 +12,7 @@ mod smart_pointers;
 mod traits;
 mod ref_traits;
 mod closures;
+mod indexer;
 
 fn main() {
     println!("hello");
