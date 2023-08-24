@@ -11,6 +11,7 @@ mod tree;
 mod smart_pointers;
 mod traits;
 mod ref_traits;
+mod closures;
 
 fn main() {
     println!("hello");
