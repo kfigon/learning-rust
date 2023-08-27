@@ -1,5 +1,6 @@
 use std::{iter::Iterator, collections::HashMap};
 
+// IntoIterator trait - used by for loops to generate iterator
 struct LimitedIterator{
     limit: i32,
     i: i32,
@@ -73,6 +74,26 @@ fn wrapping_iter() {
     assert_eq!(Some(1), i.next());
     assert_eq!(Some(2), i.next());
     assert_eq!(Some(3), i.next());
+}
+
+#[test]
+fn owned_into_iter_test() {
+    let v = vec![2,3,4,5];
+    assert_eq!(v.into_iter().collect::<Vec<_>>(), vec![2,3,4,5]);
+    // assert_eq!(v.len(), 4); compile error - borrow of moved value
+}
+
+#[test]
+fn borrowed_into_iter_test() {
+    let v = vec![2,3,4,5];
+    // into iter on borrowed produces borrowed items
+    assert_eq!((&v).into_iter().collect::<Vec<_>>(), vec![&2,&3,&4,&5]);
+    assert_eq!(v.len(), 4); // all ok, does not value
+
+    // (&mut v).iter_mut() // produces mutable borrowed values and 
+
+    // (&v).into_iter() is clunky, so it's easier to use iter() for borrowing
+    // v.iter()
 }
 
 // will work also with std::env::args()
