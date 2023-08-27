@@ -15,7 +15,7 @@ fn index(text: &str, limit: usize) -> Vec<(String, usize)>{
     let mut map: HashMap<String, usize> = HashMap::new();
 
     text.split_whitespace()
-        .map(|word| word.to_lowercase())
+        .map(&str::to_lowercase)
         .map(|word| word.replace(|c: char| !c.is_alphanumeric(), ""))
         .for_each(|w| *map.entry(w).or_default() += 1);
 

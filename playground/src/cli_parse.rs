@@ -4,11 +4,8 @@ use std::{iter::Iterator, collections::HashMap};
 fn collect_args(v: impl Iterator<Item = String>) -> HashMap<String, String> {
     v.skip(1)
     .collect::<Vec<String>>()
-    .chunks(2)
-    .filter_map(|pair| match pair {
-        [key,val] => Some((key.to_owned(), val.to_owned())),
-        _ => None
-    })
+    .chunks_exact(2)
+    .map(|pair| (pair[0].to_owned(), pair[1].to_owned()))
     .collect::<HashMap<String,String>>()
 }
 
