@@ -141,6 +141,15 @@ fn flatmap_characters_test() {
     );
 }
 
+#[test]
+fn chain_test() {
+    // append iterators
+    let a = vec![1,2,3].into_iter();
+    let b = vec![2,3,4].into_iter();
+
+    assert_eq!(a.chain(b).collect::<Vec<_>>(), vec![1,2,3,2,3,4]);
+}
+
 // will work also with std::env::args()
 fn collect_args(v: impl Iterator<Item = String>) -> HashMap<String, String> {
     v.skip(1)
