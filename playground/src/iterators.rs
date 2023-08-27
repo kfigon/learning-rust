@@ -172,5 +172,25 @@ fn zip_test() {
     assert_eq!(odd.zip(even).flat_map(|v| [v.0, v.1]).collect::<Vec<_>>(), vec![1,2,3,4,5,6]);
 }
 
+#[test]
+fn chunks_test() {
+    // this is on vec, not iter!
+    let v = vec![1,2, 3,4];
+    assert_eq!(
+        v.chunks(2).map(|v| v[0] + v[1]).collect::<Vec<_>>(), // [1,2], [3,4]
+        vec![3, 7]
+    );
+}
+
+#[test]
+fn window_test() {
+    // this is on vec, not iter!
+    let v = vec![1,2, 3,4];
+    assert_eq!(
+        v.windows(2).map(|v| v[0] + v[1]).collect::<Vec<_>>(), // [1,2], [2,3], [3,4]
+        vec![3, 5, 7]
+    );
+}
+
 // some iterator adaptors (map, take_while etc) takes ownership of iterator
 // we can pass a reference with .by_ref() to reuse the same iterator in many places
