@@ -96,6 +96,51 @@ fn borrowed_into_iter_test() {
     // v.iter()
 }
 
+#[test]
+fn flatten_test() {
+    let v = vec![
+        vec![2,3,4],
+        vec![5,6,7],
+    ];
+
+    // flats nested iters
+
+    // into_iter because I dont want to deal with references
+    assert_eq!(v.into_iter().flatten().collect::<Vec<_>>(), vec![2,3,4,5,6,7]);
+}
+
+#[test]
+fn flatmap_test() {
+    let v = vec![
+        ("foo", vec![2,3,4]),
+        ("bar", vec![5,6,7]),
+    ];
+
+    // flat with some additional mapping for nested iters
+    assert_eq!(v.into_iter().flat_map(|el| el.1).collect::<Vec<_>>(), vec![2,3,4,5,6,7]);
+}
+
+#[test]
+fn flatmap_options_test() {
+    let v = vec![
+        Some("foo"), None, None, Some("bar"), None, Some("asd")
+    ];
+
+    // flatten on Option skips nons. Same for Results
+    assert_eq!(v.into_iter().flatten().collect::<Vec<_>>(), vec!["foo", "bar", "asd"]);
+}
+
+#[test]
+fn flatmap_characters_test() {
+    assert_eq!(
+        "this is a string"
+            .chars()
+            .flat_map(char::to_uppercase) // to_uppercase returns an iterator of multiple chars. Flat them
+            .collect::<String>(),
+        "THIS IS A STRING"
+    );
+}
+
 // will work also with std::env::args()
 fn collect_args(v: impl Iterator<Item = String>) -> HashMap<String, String> {
     v.skip(1)

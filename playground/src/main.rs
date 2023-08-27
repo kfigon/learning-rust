@@ -1,6 +1,6 @@
 use std::{
     io::{prelude::*, BufReader, Error},
-    net::{TcpListener, TcpStream}, thread::{self, Thread},
+    net::{TcpListener, TcpStream}, thread::{self},
 };
 
 mod methods;
