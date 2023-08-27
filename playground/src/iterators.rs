@@ -151,6 +151,17 @@ fn chain_test() {
 }
 
 #[test]
+fn cloned_test() {
+    let a = vec![2,3,4,5];
+
+    // borrowed
+    assert_eq!(a.iter().collect::<Vec<_>>(), vec![&2,&3,&4,&5]);
+    
+    // get cloned values, so we dont need to deal with references
+    assert_eq!(a.iter().cloned().collect::<Vec<_>>(), vec![2,3,4,5]);
+}
+
+#[test]
 fn zip_test() {
     let even = vec![2,4,6,8].into_iter();
     let odd = vec![1,3,5].into_iter();
