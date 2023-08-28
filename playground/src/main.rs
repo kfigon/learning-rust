@@ -19,6 +19,7 @@ mod ref_traits;
 mod closures;
 mod indexer;
 mod cli_parse;
+mod io;
 
 fn main() {
     println!("hello");
