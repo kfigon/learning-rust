@@ -39,8 +39,9 @@ mod test {
     fn writer_test() {
         // Vec implements Write
         let mut w = Vec::<u8>::new();
+        // + BufWriter::new()
         write!(&mut w, "foobar").unwrap();
-
+        // or w.write("foobar".as_bytes());
         assert_eq!(w, "foobar".bytes().collect::<Vec<_>>())
     }
 }
