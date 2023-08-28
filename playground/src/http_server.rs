@@ -32,9 +32,6 @@ fn handle(mut stream: TcpStream) -> std::io::Result<()> {
         http_request.push(line);
     }
 
-    BufReader::new(&stream).lines()
-        .take(f)
-
     println!("{http_request:?}");
 
     stream.write_all(b"HTTP/1.1 200 OK\r\n\r\n")?;
