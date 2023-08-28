@@ -16,6 +16,7 @@ mod indexer;
 mod cli_parse;
 mod io;
 mod http_server;
+mod threads;
 
 fn main() {
     println!("hello");
