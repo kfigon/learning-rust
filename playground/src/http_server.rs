@@ -1,11 +1,9 @@
 use std::{
-    io::{prelude::*, BufReader, Error},
+    io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream}, thread::{self},
 };
 
-
 fn start() {
-    
     let listener = TcpListener::bind("0.0.0.0:8080").expect("failed to open tcp connection");
     loop {
         let con = listener.accept();
