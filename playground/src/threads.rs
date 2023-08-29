@@ -62,6 +62,10 @@ mod test {
 
     // it's usually better to use fork-join or channels, but sometimes
     // shared state is required
+
+    // RwLock is nice alternative for data that changes infrequently, but is read often
+
+    // more tools - CondVar, atomics
     #[test]
     fn mutex_test() {
         let data = "hello".to_string();
