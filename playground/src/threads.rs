@@ -1,3 +1,7 @@
+// we dont need to derive them
+// Send marker trait - we can move value to a thread
+// Sync marker trait - we can pass readonly ref to a thread
+
 #[cfg(test)]
 mod for_join_test {
     use std::{sync::Arc, collections::HashSet};
@@ -47,5 +51,41 @@ mod for_join_test {
                 Err("invalid data"),
             ])
             , res);
+    }
+}
+
+#[cfg(test)]
+mod test {
+    // thread wrappers
+
+    use std::{sync::{Arc, Mutex}, thread};
+
+    // it's usually better to use fork-join or channels, but sometimes
+    // shared state is required
+    #[test]
+    fn mutex_test() {
+        let data = "hello".to_string();
+        let data = Arc::new(Mutex::new(data));
+
+        // mutex.lock().unwrap()
+        // mutex.lock().unwrap() // deadlock - locking same mutex twice
+
+        let d1 = data.clone();
+        let t1 = thread::spawn(move|| {
+            let mut d = d1.lock().unwrap();
+            d.push('!');
+        });
+
+        let d2 = data.clone();
+        let t2 = thread::spawn(move|| {
+            let mut d = d2.lock().unwrap();
+            d.push('!');
+        });
+
+        t1.join().unwrap();
+        t2.join().unwrap();
+
+        let result = data.lock().unwrap();
+        assert_eq!(result.as_str(), "hello!!");
     }
 }
