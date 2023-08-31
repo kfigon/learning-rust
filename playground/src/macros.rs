@@ -107,7 +107,9 @@ mod test {
         par_ones -> (1, 1),
         par_twos -> (2, 2),
         par_expressions -> (2, 1+1),
-        par_expressions2 -> (5, 3+2)
+        par_expressions2 -> (5, 3+2),
+        par_vector_single -> (a_vector!(4), vec![4]),
+        par_vector_many -> (a_vector!(4,5,6,7), vec![4,5,6,7])
     );
 
     #[derive(Debug, PartialEq)]
