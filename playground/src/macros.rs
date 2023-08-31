@@ -35,9 +35,6 @@ mod test {
         ($($values:expr),*) => {
             HashSet::from([$($values),*])
         };
-        ($($values:expr),+) => { // trailing comma
-            hash_set!($ ($values),*)
-        };
     }
 
     #[test]
@@ -50,6 +47,21 @@ mod test {
         let v = hash_set!(1,2,4,1);
 
         assert_eq!(exp, v);
+    }
+
+    macro_rules! a_vector {
+        // double {{ because I need a block
+        ($($values:expr),*) => {{
+            let mut vs = Vec::new();
+            $(vs.push($values);)*
+            vs
+        }};
+    }
+
+    #[test]
+    fn vec_test() {
+        let x = a_vector!(1,2,3);
+        assert_eq!(x, vec![1,2,3])
     }
 
     macro_rules! make_struct {
@@ -78,6 +90,25 @@ mod test {
 
         assert_eq!(s, other);
     }
+
+    macro_rules! parametric_test {
+        ( $( $name:ident -> ($got:expr, $exp:expr)),* ) => {
+            $(
+                #[test]
+                fn $name() {
+                    assert_eq!($got, $exp);
+                }
+            )*
+        };
+    }
+
+    parametric_test!(
+        par_zeros -> (0, 0),
+        par_ones -> (1, 1),
+        par_twos -> (2, 2),
+        par_expressions -> (2, 1+1),
+        par_expressions2 -> (5, 3+2)
+    );
 
     #[derive(Debug, PartialEq)]
     enum Json {
