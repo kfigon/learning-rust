@@ -14,6 +14,7 @@ fn get_results() -> Vec<String> {
         });
     }
 
+    // typically we should be using thread join and channel as iterator
     let mut out: Vec<String> = Vec::new();
     for _ in 0..req_len {
         out.push(rx.recv().unwrap());

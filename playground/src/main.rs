@@ -17,6 +17,8 @@ mod cli_parse;
 mod io;
 mod http_server;
 mod threads;
+mod async_learn;
+mod macros;
 
 fn main() {
     println!("hello");
