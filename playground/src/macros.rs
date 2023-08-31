@@ -2,11 +2,19 @@
 mod test {
     use std::collections::{HashSet, HashMap};
 
+    // declarative macros - code generation. This mod is all declarative
+    // procedural macros - more advanced things. Not covered here
+
     // we can include files at compile time, do conditionals based on env vars, expand expressions and patterns
 
     // expr, stmt, pat, tt (any token), ty (type), lifetime, literal, ident, path (code path), item (anything), block
 
     // trace_macros!(true); for debugging
+
+    // hygiene - there're separate macro scopes and implicit variable renaming, so in case of temp vars in macros, there wont be conflicts
+
+    // export macros - #[macro_use] mod module_name;
+    // and mark macro rules with #[macro_export]
 
     macro_rules! foobar {
         ($value:expr, $pattern:pat $(if $guard:expr)?) => {
