@@ -180,5 +180,29 @@ mod test {
 
         assert_eq!(exp, got);
     }
+
+
+    // so I dont need to worry about .to_string() all the time
+    macro_rules! make_hash {
+        ( { $($key:expr, $val:expr),* } ) => {{
+            let mut v = HashMap::new();
+            $(v.insert($key.to_string(), $val);)*
+            v
+        }};
+    }
+
+    #[test]
+    fn make_hashmap() {
+        let v = make_hash!({
+            "foo", 4,
+            "bar", 5
+        });
+
+        let mut exp = HashMap::new();
+        exp.insert("foo".to_string(), 4);
+        exp.insert("bar".to_string(), 5);
+
+        assert_eq!(v, exp)
+    }
 }
 
