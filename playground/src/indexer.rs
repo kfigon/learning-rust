@@ -12,12 +12,13 @@ Morbi hendrerit consequat hendrerit. Vivamus pharetra posuere facilisis. Etiam d
 
 
 fn index(text: &str, limit: usize) -> Vec<(String, usize)>{
-    let mut map: HashMap<String, usize> = HashMap::new();
-
-    text.split_whitespace()
+     let map: HashMap<String, usize> = text.split_whitespace()
         .map(&str::to_lowercase)
         .map(|word| word.replace(|c: char| !c.is_alphanumeric(), ""))
-        .for_each(|w| *map.entry(w).or_default() += 1);
+        .fold(HashMap::new(), |mut m, w| {
+            *m.entry(w).or_default() += 1;
+            m
+        });
 
     let mut sorted: Vec<(&String, &usize)> = map.iter().collect();
 

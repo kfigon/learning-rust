@@ -1,4 +1,4 @@
-use std::iter::Iterator;
+use std::{iter::Iterator, collections::HashMap};
 
 // IntoIterator trait - used by for loops to generate iterator
 struct LimitedIterator{
@@ -194,3 +194,20 @@ fn window_test() {
 
 // some iterator adaptors (map, take_while etc) takes ownership of iterator
 // we can pass a reference with .by_ref() to reuse the same iterator in many places
+
+#[test]
+fn reduce_test(){
+    let occurences: HashMap<char, usize> = "missisipi".chars()
+        .fold(HashMap::new(), |mut acc, e| {
+            *acc.entry(e).or_default() += 1;
+            acc
+        });
+
+    assert_eq!(HashMap::from([
+        ('m', 1),
+        ('i', 4),
+        ('s', 3),
+        ('p', 1),
+    ]), occurences);
+
+}
