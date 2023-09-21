@@ -54,6 +54,32 @@ impl Parser for DigitParser {
     }
 }
 
+struct Many {
+    parsers: Vec<Box<dyn Parser>>
+}
+
+impl Many {
+    fn new(parsers: Vec<Box<dyn Parser>>) -> Self {
+        Self { parsers }
+    }
+}
+
+impl Parser for Many {
+    fn parse(&self, s: &str) -> Result<ParserResult, ParsingErr> {
+        let mut to_search = s;
+        let mut result = String::new();
+
+        for p in &self.parsers {
+            let res = p.parse(to_search)?;
+            result.push_str(&res.res);
+
+            to_search = &to_search[res.res.len()..]
+        }
+
+        Ok(ParserResult::new(result))
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -86,5 +112,26 @@ mod test {
         let d = DigitParser;
         assert_eq!(d.parse("5"),   Ok(ParserResult::new("5".to_string())));
         assert_eq!(d.parse("123"), Ok(ParserResult::new("1".to_string())));
+    }
+
+    #[test]
+    fn many_parser_digits() {
+        let d = Many::new(vec![Box::new(DigitParser), Box::new(DigitParser), Box::new(DigitParser)]);
+        assert_eq!(d.parse("123"),   Ok(ParserResult::new("123".to_string())));
+        assert_eq!(d.parse("1234"), Ok(ParserResult::new("123".to_string())));
+    }
+
+    #[test]
+    fn many_parser_combined() {
+        let d = Many::new(vec![Box::new(DigitParser), Box::new(StringParser::new(" foobar ")), Box::new(DigitParser)]);
+        assert_eq!(d.parse("1 foobar 3"),   Ok(ParserResult::new("1 foobar 3".to_string())));
+        assert_eq!(d.parse("1 foobar 3456798 asdf"), Ok(ParserResult::new("1 foobar 3".to_string())));
+    }
+
+    #[test]
+    fn many_parser_combined_failed() {
+        let d = Many::new(vec![Box::new(DigitParser), Box::new(StringParser::new(" foobar ")), Box::new(DigitParser)]);
+        assert_eq!(d.parse("1 foobar x"),  Err(ParsingErr::NotFound));
+        assert_eq!(d.parse("1 foobar x5"), Err(ParsingErr::NotFound));
     }
 }
