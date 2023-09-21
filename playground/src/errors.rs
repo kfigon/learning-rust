@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test{
-    use std::{fs::read_to_string, num::ParseIntError};
+    use std::{fs::read_to_string, num::ParseIntError, fmt::Display};
 
 
     #[derive(Debug, PartialEq)]
@@ -45,6 +45,39 @@ mod test{
                 _ => panic!("epected parse error"),
             },
         }
+    }
+
+
+    #[derive(Debug)]
+    struct ErrorA;
+    impl std::error::Error for ErrorA{}
+    impl Display for ErrorA {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.write_str("Error A")
+        }
+    }
+
+    #[derive(Debug)]
+    struct ErrorB;
+    impl std::error::Error for ErrorB{}
+    impl Display for ErrorB {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            f.write_str("Error B")
+        }
+    }
+
+    fn get_dynamic_error(b: bool) -> Result<(), Box<dyn std::error::Error>> {
+        if b {
+            Err(Box::new(ErrorA))
+        } else {
+            Err(Box::new(ErrorB))
+        }
+    }
+
+    #[test]
+    fn dynaminc_error() {
+        let res = get_dynamic_error(true);
+        assert_eq!(res.err().unwrap().to_string(), "Error A")
     }
 
 }
