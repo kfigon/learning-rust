@@ -97,6 +97,23 @@ impl Parser for Many {
     }
 }
 
+struct FloatParser;
+impl Parser for FloatParser {
+    fn parse(&self, s: &str) -> Result<ParserResult, ParsingErr> {
+        let p = Many::new(vec![
+                Box::new(While::new(DigitParser)),
+                Box::new(
+                    Many::new(vec![
+                        Box::new(StringParser::new(".")),
+                        Box::new(While::new(DigitParser)),
+                    ])
+                )
+            ]);
+        
+        p.parse(s)
+    }
+}
+
 struct Until<P: Parser> {
     p: P
 }
@@ -192,6 +209,18 @@ mod test {
         let d = DigitParser;
         assert_eq!(d.parse("5"),   Ok(ParserResult::new("5".to_string())));
         assert_eq!(d.parse("123"), Ok(ParserResult::new("1".to_string())));
+    }
+
+    #[test]
+    fn float_parser() {
+        let p = FloatParser;
+        assert_eq!(p.parse("123.4"), Ok(ParserResult::new("123.4".to_string())));
+        assert_eq!(p.parse("1.45a"), Ok(ParserResult::new("1.45".to_string())));
+        assert_eq!(p.parse("5"),   Err(ParsingErr::NotFound));
+        assert_eq!(p.parse("123"), Err(ParsingErr::NotFound));
+        assert_eq!(p.parse(".45"), Err(ParsingErr::NotFound));
+        assert_eq!(p.parse("1234."), Err(ParsingErr::NotFound));
+        assert_eq!(p.parse("1234.a"), Err(ParsingErr::NotFound));
     }
 
     #[test]
