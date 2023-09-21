@@ -44,7 +44,6 @@ impl<'a> Parser for StringParser<'a> {
 }
 
 struct DigitParser;
-
 impl Parser for DigitParser {
     fn parse(&self, s: &str) -> Result<ParserResult, ParsingErr> {
         match s.chars().next() {
@@ -95,6 +94,33 @@ impl Parser for Many {
         }
 
         Ok(ParserResult::new(result))
+    }
+}
+
+struct Until<P: Parser> {
+    p: P
+}
+impl<P: Parser> Until<P> {
+    fn new(p: P) -> Self {
+        Self { p }
+    }
+}
+
+impl<P: Parser> Parser for Until<P> {
+    fn parse(&self, s: &str) -> Result<ParserResult, ParsingErr> {
+        let mut out = String::new();
+        let mut left = s;
+        for c in s.chars() {
+            match self.p.parse(left) {
+                Err(ParsingErr::NotFound) => {
+                    left = &left[1..];
+                    out.push(c);
+                },
+                Err(e) => return Err(e),
+                Ok(_) => break,
+            }
+        }
+        Ok(ParserResult::new(out))
     }
 }
 
@@ -168,5 +194,34 @@ mod test {
         assert_eq!(d.parse(""),  Ok(ParserResult::new("".to_string())));
         assert_eq!(d.parse("foo"),  Ok(ParserResult::new("".to_string())));
         assert_eq!(d.parse("foobarz"),  Ok(ParserResult::new("foobar".to_string())));
+    }
+
+    #[test]
+    fn until_char() {
+        let p = Until::new(StringParser::new("*"));
+        assert_eq!(p.parse("1234*"),  Ok(ParserResult::new("1234".to_string())));
+        assert_eq!(p.parse("12345asbdc*"),  Ok(ParserResult::new("12345asbdc".to_string())));
+        assert_eq!(p.parse("*foo"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(p.parse("foobarz123  xxx*"),  Ok(ParserResult::new("foobarz123  xxx".to_string())));
+        assert_eq!(p.parse("foobarz123  "),  Ok(ParserResult::new("foobarz123  ".to_string())));
+    }
+
+    #[test]
+    fn until_str() {
+        let p = Until::new(StringParser::new("foo"));
+        assert_eq!(p.parse("1234*"),  Ok(ParserResult::new("1234*".to_string())));
+        assert_eq!(p.parse("12345asbdc*"),  Ok(ParserResult::new("12345asbdc*".to_string())));
+        assert_eq!(p.parse("foobar"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(p.parse("*foo"),  Ok(ParserResult::new("*".to_string())));
+        assert_eq!(p.parse("123faa*foo"),  Ok(ParserResult::new("123faa*".to_string())));
+    }
+
+    #[test]
+    fn until_digit() {
+        let p = Until::new(DigitParser);
+        assert_eq!(p.parse("1234*"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(p.parse("12345asbdc*"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(p.parse("*foo"),  Ok(ParserResult::new("*foo".to_string())));
+        assert_eq!(p.parse("foobarz123  xxx*"),  Ok(ParserResult::new("foobarz".to_string())));
     }
 }
