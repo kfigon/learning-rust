@@ -54,6 +54,24 @@ impl Parser for DigitParser {
     }
 }
 
+struct Maybe<P: Parser> {
+    p: P
+}
+impl<P: Parser> Maybe<P> {
+    fn new(p: P) -> Self {
+        Self { p }
+    }
+}
+
+impl<P: Parser> Parser for Maybe<P>{
+ fn parse(&self, s: &str) -> Result<ParserResult, ParsingErr> {
+        match self.p.parse(s) {
+            Ok(v) => Ok(v),
+            Err(_) => Ok(ParserResult::new("".to_string())),
+        }
+    }
+}
+
 struct Many {
     parsers: Vec<Box<dyn Parser>>
 }
@@ -133,5 +151,22 @@ mod test {
         let d = Many::new(vec![Box::new(DigitParser), Box::new(StringParser::new(" foobar ")), Box::new(DigitParser)]);
         assert_eq!(d.parse("1 foobar x"),  Err(ParsingErr::NotFound));
         assert_eq!(d.parse("1 foobar x5"), Err(ParsingErr::NotFound));
+    }
+
+    #[test]
+    fn maybe_digit_parser() {
+        let d = Maybe::new(DigitParser);
+        assert_eq!(d.parse("1"),  Ok(ParserResult::new("1".to_string())));
+        assert_eq!(d.parse(""),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(d.parse("abc"),  Ok(ParserResult::new("".to_string())));
+    }
+
+    #[test]
+    fn maybe_str_parser() {
+        let d = Maybe::new(StringParser::new("foobar"));
+        assert_eq!(d.parse("1"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(d.parse(""),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(d.parse("foo"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(d.parse("foobarz"),  Ok(ParserResult::new("foobar".to_string())));
     }
 }
