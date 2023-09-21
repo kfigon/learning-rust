@@ -120,7 +120,43 @@ impl<P: Parser> Parser for Until<P> {
                 Ok(_) => break,
             }
         }
-        Ok(ParserResult::new(out))
+
+        if out.is_empty() {
+            Err(ParsingErr::NotFound)
+        } else {
+            Ok(ParserResult::new(out))
+        }
+    }
+}
+
+struct While<P: Parser> {
+    p: P
+}
+impl<P: Parser> While<P> {
+    fn new(p: P) -> Self {
+        Self { p }
+    }
+}
+
+impl<P: Parser> Parser for While<P> {
+    fn parse(&self, s: &str) -> Result<ParserResult, ParsingErr> {
+        let mut out = String::new();
+        let mut left = s;
+        while !left.is_empty() {
+            match self.p.parse(left) {
+                Err(ParsingErr::NotFound) => break,
+                Err(e) => return Err(e),
+                Ok(v) => {
+                    out.push_str(&v.res);
+                    left = &left[v.res.len()..];
+                },
+            }
+        }
+        if out.is_empty() {
+            Err(ParsingErr::NotFound)
+        } else {
+            Ok(ParserResult::new(out))
+        }
     }
 }
 
@@ -201,7 +237,7 @@ mod test {
         let p = Until::new(StringParser::new("*"));
         assert_eq!(p.parse("1234*"),  Ok(ParserResult::new("1234".to_string())));
         assert_eq!(p.parse("12345asbdc*"),  Ok(ParserResult::new("12345asbdc".to_string())));
-        assert_eq!(p.parse("*foo"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(p.parse("*foo"),  Err(ParsingErr::NotFound));
         assert_eq!(p.parse("foobarz123  xxx*"),  Ok(ParserResult::new("foobarz123  xxx".to_string())));
         assert_eq!(p.parse("foobarz123  "),  Ok(ParserResult::new("foobarz123  ".to_string())));
     }
@@ -211,7 +247,7 @@ mod test {
         let p = Until::new(StringParser::new("foo"));
         assert_eq!(p.parse("1234*"),  Ok(ParserResult::new("1234*".to_string())));
         assert_eq!(p.parse("12345asbdc*"),  Ok(ParserResult::new("12345asbdc*".to_string())));
-        assert_eq!(p.parse("foobar"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(p.parse("foobar"),  Err(ParsingErr::NotFound));
         assert_eq!(p.parse("*foo"),  Ok(ParserResult::new("*".to_string())));
         assert_eq!(p.parse("123faa*foo"),  Ok(ParserResult::new("123faa*".to_string())));
     }
@@ -219,9 +255,35 @@ mod test {
     #[test]
     fn until_digit() {
         let p = Until::new(DigitParser);
-        assert_eq!(p.parse("1234*"),  Ok(ParserResult::new("".to_string())));
-        assert_eq!(p.parse("12345asbdc*"),  Ok(ParserResult::new("".to_string())));
+        assert_eq!(p.parse("1234*"),  Err(ParsingErr::NotFound));
+        assert_eq!(p.parse("12345asbdc*"),  Err(ParsingErr::NotFound));
         assert_eq!(p.parse("*foo"),  Ok(ParserResult::new("*foo".to_string())));
         assert_eq!(p.parse("foobarz123  xxx*"),  Ok(ParserResult::new("foobarz".to_string())));
+    }
+
+    #[test]
+    fn while_digit() {
+        let p = While::new(DigitParser);
+        assert_eq!(p.parse("1234*"),  Ok(ParserResult::new("1234".to_string())));
+        assert_eq!(p.parse("12345a123"),  Ok(ParserResult::new("12345".to_string())));
+        assert_eq!(p.parse("*foo"),  Err(ParsingErr::NotFound));
+        assert_eq!(p.parse("foobarz123  xxx*"),  Err(ParsingErr::NotFound));
+    }
+
+    #[test]
+    fn while_str() {
+        let p = While::new(StringParser::new("hi"));
+        assert_eq!(p.parse("hihihi4*"),  Ok(ParserResult::new("hihihi".to_string())));
+        assert_eq!(p.parse("hihihi"),  Ok(ParserResult::new("hihihi".to_string())));
+        assert_eq!(p.parse("hihih"),  Ok(ParserResult::new("hihi".to_string())));
+        assert_eq!(p.parse("hjhih"),  Err(ParsingErr::NotFound));
+    }
+
+    #[test]
+    fn while_many() {
+        let p = While::new(Many::new(vec![Box::new(StringParser::new("hi")), Box::new(StringParser::new("!")), Box::new(DigitParser)]));
+        assert_eq!(p.parse("hi!1"),  Ok(ParserResult::new("hi!1".to_string())));
+        assert_eq!(p.parse("hi!1hi!2hi!3ads"),  Ok(ParserResult::new("hi!1hi!2hi!3".to_string())));
+        assert_eq!(p.parse("hi!"),  Err(ParsingErr::NotFound));
     }
 }
