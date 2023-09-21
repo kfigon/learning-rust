@@ -177,6 +177,27 @@ impl<P: Parser> Parser for While<P> {
     }
 }
 
+struct Or {
+    parsers: Vec<Box<dyn Parser>>
+}
+
+impl Or {
+    fn new(parsers: Vec<Box<dyn Parser>>) -> Self {
+        Self { parsers }
+    }
+}
+
+impl Parser for Or {
+    fn parse(&self, s: &str) -> Result<ParserResult, ParsingErr> {
+        for p in &self.parsers {
+            if let Ok(v) = p.parse(s) {
+                return Ok(v);
+            }
+        }
+        Err(ParsingErr::NotFound)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -314,5 +335,16 @@ mod test {
         assert_eq!(p.parse("hi!1"),  Ok(ParserResult::new("hi!1".to_string())));
         assert_eq!(p.parse("hi!1hi!2hi!3ads"),  Ok(ParserResult::new("hi!1hi!2hi!3".to_string())));
         assert_eq!(p.parse("hi!"),  Err(ParsingErr::NotFound));
+    }
+
+    #[test]
+    fn or() {
+        let p = Or::new(vec![Box::new(DigitParser), Box::new(StringParser::new("x"))]);
+
+        assert_eq!(p.parse("1"),  Ok(ParserResult::new("1".to_string())));
+        assert_eq!(p.parse("123"),  Ok(ParserResult::new("1".to_string())));
+        assert_eq!(p.parse("x"),  Ok(ParserResult::new("x".to_string())));
+        assert_eq!(p.parse("xxxx"),  Ok(ParserResult::new("x".to_string())));
+        assert_eq!(p.parse("a"),  Err(ParsingErr::NotFound));
     }
 }
