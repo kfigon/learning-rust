@@ -200,6 +200,8 @@ impl Parser for Or {
 
 #[cfg(test)]
 mod test {
+    use std::ops::Range;
+
     use super::*;
 
     #[test]
@@ -346,5 +348,30 @@ mod test {
         assert_eq!(p.parse("x"),  Ok(ParserResult::new("x".to_string())));
         assert_eq!(p.parse("xxxx"),  Ok(ParserResult::new("x".to_string())));
         assert_eq!(p.parse("a"),  Err(ParsingErr::NotFound));
+    }
+
+    #[test]
+    fn split_ranges() {
+        let input = "2-41,6-8";
+        let range = Many::new(vec![
+            Box::new(While::new(DigitParser)),
+            Box::new(StringParser::new("-")),
+            Box::new(While::new(DigitParser)),
+        ]);
+        
+        let split = |s: &str| -> Option<Range<i32>> {
+            match s.split("-").collect::<Vec<&str>>()[..] {
+                [one, two] => Some(one.parse().unwrap()..two.parse().unwrap()),
+                _ => None
+            }
+        };
+
+        let first_match = range.parse(input).unwrap();
+        let second_match = range.parse(&input[first_match.res.len()+1..]).unwrap();
+        let first = split(&first_match.res).unwrap();
+        let second = split(&second_match.res).unwrap();
+
+        assert_eq!(first, 2..41);
+        assert_eq!(second, 6..8)
     }
 }
