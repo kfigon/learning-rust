@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use nom::{IResult, bytes::complete::{tag, take_until}, branch::alt, character::complete::digit1, sequence::delimited, character::complete::char};
+
 #[derive(Debug,PartialEq)]
 enum Json {
     Null,
@@ -13,12 +15,64 @@ enum Json {
 #[derive(Debug,PartialEq)]
 struct ErrorMsg(String);
 
-impl TryFrom<&str> for Json {
-    type Error = ErrorMsg;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        todo!()
+impl From<String> for ErrorMsg {
+    fn from(value: String) -> Self {
+        ErrorMsg(value)
     }
+}
+
+impl From<&str> for ErrorMsg {
+    fn from(value: &str) -> Self {
+        ErrorMsg(value.to_string())
+    }
+}
+
+
+fn null(v: &str) -> IResult<&str, Json> {
+    let r = tag("null")(v)?;
+    Ok((r.0, Json::Null))
+}
+
+fn bool(v: &str) -> IResult<&str, Json> {
+    let r = alt((
+        tag("true"),
+        tag("false")
+    ))(v)?;
+
+    let parsed = match r.1 {
+        "true" => Json::Bool(true),
+        "false" => Json::Bool(false),
+        _ => unreachable!()
+    };
+    Ok((r.0, parsed))
+}
+
+fn num(v: &str) -> IResult<&str, Json> {
+    let r = digit1(v)?;
+    let num_val = Json::Num(r.1.parse::<i32>().unwrap());
+    Ok((r.0, num_val))
+}
+
+fn any_str(v: &str) -> IResult<&str, Json> {
+    let r = delimited(
+        char('"'),
+        take_until("\""),
+        char('"'),
+    )(v)?;
+
+    let str_val = Json::Str(r.1.to_string());
+    Ok((r.0, str_val))
+}
+
+fn parse_json(input: &str) -> Result<Json, ErrorMsg> {
+    let r = alt((
+        null,
+        bool,
+        num,
+        any_str
+    ))(input).map_err(|e| ErrorMsg(e.to_string()))?;
+
+    Ok(r.1)
 }
 
 #[cfg(test)]
@@ -27,23 +81,23 @@ mod test {
 
     #[test]
     fn null() {
-        assert_eq!("null".try_into(), Ok(Json::Null));
+        assert_eq!(parse_json("null"), Ok(Json::Null));
     }
-
+    
     #[test]
     fn integer() {
-        assert_eq!("15".try_into(), Ok(Json::Num(15)));
+        assert_eq!(parse_json("15"), Ok(Json::Num(15)));
     }
 
     #[test]
     fn str() {
-        assert_eq!("foobar".try_into(), Ok(Json::Str("foobar".to_string())));
+        assert_eq!(parse_json("\"foobar\""), Ok(Json::Str("foobar".to_string())));
     }
 
     #[test]
     fn bool() {
-        assert_eq!("true".try_into(), Ok(Json::Bool(true)));
-        assert_eq!("false".try_into(), Ok(Json::Bool(false)));
+        assert_eq!(parse_json("true"), Ok(Json::Bool(true)));
+        assert_eq!(parse_json("false"), Ok(Json::Bool(false)));
     }
 
     #[test]
