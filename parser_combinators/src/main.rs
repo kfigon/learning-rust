@@ -1,3 +1,5 @@
+mod json_nom;
+
 fn main() {
     println!("Hello, world!");
 }
