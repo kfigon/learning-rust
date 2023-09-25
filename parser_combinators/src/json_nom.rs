@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use nom::{IResult, bytes::complete::{tag, take_until}, branch::alt, character::complete::digit1, sequence::delimited, character::complete::char};
+use nom::{IResult, bytes::complete::{tag, take_until}, branch::alt, character::complete::digit1, sequence::delimited, character::complete::char, multi::separated_list0};
 
 #[derive(Debug,PartialEq)]
 enum Json {
@@ -64,13 +64,28 @@ fn any_str(v: &str) -> IResult<&str, Json> {
     Ok((r.0, str_val))
 }
 
-fn parse_json(input: &str) -> Result<Json, ErrorMsg> {
-    let r = alt((
+fn arr(v: &str) -> IResult<&str, Json> {
+    let r = delimited(
+        char('['),
+        separated_list0(char(','), parser_raw),
+        char(']'),
+    )(v)?;
+
+    Ok((r.0, Json::Arr(r.1)))
+}
+
+fn parser_raw(v: &str) -> IResult<&str, Json> {
+    alt((
         null,
         bool,
         num,
-        any_str
-    ))(input).map_err(|e| ErrorMsg(e.to_string()))?;
+        any_str,
+        arr
+    ))(v)
+}
+
+fn parse_json(input: &str) -> Result<Json, ErrorMsg> {
+    let r = parser_raw(input).map_err(|e| ErrorMsg(e.to_string()))?;
 
     Ok(r.1)
 }
@@ -102,7 +117,13 @@ mod test {
 
     #[test]
     fn arr() {
-        todo!()
+        assert_eq!(parse_json(r#"[1,2,true,null,"hello"]"#), Ok(Json::Arr(vec![
+            Json::Num(1),
+            Json::Num(2),
+            Json::Bool(true),
+            Json::Null,
+            Json::Str("hello".to_string()),
+        ])));
     }
 
     #[test]
