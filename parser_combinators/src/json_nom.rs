@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use nom::{IResult, bytes::complete::{tag, take_until}, branch::alt, character::complete::{digit1, multispace0}, sequence::{delimited, tuple}, character::complete::{char, alpha1}, multi::{separated_list0, many0}, error::ParseError, combinator::opt};
+use nom::{IResult, bytes::complete::{tag, take_until}, branch::alt, character::complete::{digit1, multispace0}, sequence::{delimited, tuple}, character::complete::{char, alpha1}, multi::{separated_list0, many0}, error::ParseError, combinator::{opt, value}};
 
 #[derive(Debug,PartialEq)]
 enum Json {
@@ -45,16 +45,11 @@ fn null(v: &str) -> IResult<&str, Json> {
 
 fn bool(v: &str) -> IResult<&str, Json> {
     let r = alt((
-        tag("true"),
-        tag("false")
+        value(true, tag("true")),
+        value(false, tag("false")),
     ))(v)?;
 
-    let parsed = match r.1 {
-        "true" => Json::Bool(true),
-        "false" => Json::Bool(false),
-        _ => unreachable!()
-    };
-    Ok((r.0, parsed))
+    Ok((r.0, Json::Bool(r.1)))
 }
 
 fn num(v: &str) -> IResult<&str, Json> {
