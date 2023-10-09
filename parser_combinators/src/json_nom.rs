@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use nom::{IResult, bytes::complete::{tag, take_until}, branch::alt, character::complete::digit1, sequence::delimited, character::complete::char, multi::separated_list0};
+use nom::{IResult, bytes::complete::{tag, take_until}, branch::alt, character::complete::{digit1, multispace0}, sequence::{delimited, tuple}, character::complete::{char, alpha1}, multi::{separated_list0, many0}, error::ParseError, combinator::opt};
 
 #[derive(Debug,PartialEq)]
 enum Json {
@@ -27,6 +27,16 @@ impl From<&str> for ErrorMsg {
     }
 }
 
+fn ws<'a, F: 'a, O, E: ParseError<&'a str>>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O, E>
+  where
+  F: Fn(&'a str) -> IResult<&'a str, O, E>,
+{
+  delimited(
+    multispace0,
+    inner,
+    multispace0
+  )
+}
 
 fn null(v: &str) -> IResult<&str, Json> {
     let r = tag("null")(v)?;
@@ -74,13 +84,39 @@ fn arr(v: &str) -> IResult<&str, Json> {
     Ok((r.0, Json::Arr(r.1)))
 }
 
+fn single_obj_key(v: &str) -> IResult<&str, (&str, Json)> {
+    let (rest, res) = tuple((
+        ws(alpha1), 
+        ws(char(':')), 
+        ws(parser_raw),
+        opt(ws(char(',')))
+    ))(v)?;
+
+    Ok((rest, (res.0, res.2)))
+}
+
+fn obj(v: &str) -> IResult<&str, Json> {
+    let r = delimited(
+        ws(char('{')),
+        many0(single_obj_key),
+        ws(char('}')),
+    )(v)?;
+
+    Ok((r.0, Json::Obj(
+        HashMap::from_iter(r.1.into_iter()
+            .map(|pair| (pair.0.to_string(), pair.1))
+        )
+    )))
+}
+
 fn parser_raw(v: &str) -> IResult<&str, Json> {
     alt((
-        null,
-        bool,
-        num,
-        any_str,
-        arr
+        ws(null),
+        ws(bool),
+        ws(num),
+        ws(any_str),
+        ws(arr),
+        ws(obj),
     ))(v)
 }
 
@@ -127,8 +163,113 @@ mod test {
     }
 
     #[test]
-    fn obj() {
-        todo!()
+    fn arr_with_spaces() {
+        assert_eq!(parse_json(r#"[ 1, 2, true, null, "hello" ]"#), Ok(Json::Arr(vec![
+            Json::Num(1),
+            Json::Num(2),
+            Json::Bool(true),
+            Json::Null,
+            Json::Str("hello".to_string()),
+        ])));
+    }
+
+    #[test]
+    fn obj_simple() {
+        let input = r#"{
+            foo: "bar",
+            asd: 123,
+            bar: null,
+            sad: true
+        }"#;
+        assert_eq!(parse_json(input), Ok(Json::Obj(
+            HashMap::from_iter(vec![
+                ("foo".to_string(), Json::Str("bar".to_string())),
+                ("asd".to_string(), Json::Num(123)),
+                ("sad".to_string(), Json::Bool(true)),
+                ("bar".to_string(), Json::Null)
+            ])
+        )));
+    }
+
+    #[test]
+    fn obj_simple_with_spaces() {
+        let input = r#"{
+            foo  : "bar"  ,
+            asd:123,
+        }"#;
+        assert_eq!(parse_json(input), Ok(Json::Obj(
+            HashMap::from_iter(vec![
+                ("foo".to_string(), Json::Str("bar".to_string())),
+                ("asd".to_string(), Json::Num(123)),
+            ])
+        )));
+    }
+
+    #[test]
+    fn obj_nested() {
+        let input = r#"{
+            foo: {
+                ok: false
+            }
+        }"#;
+        assert_eq!(parse_json(input), Ok(Json::Obj(
+            HashMap::from_iter(vec![
+                ("foo".to_string(), Json::Obj(
+                    HashMap::from_iter(vec![
+                        ("ok".to_string(), Json::Bool(false))
+                    ])
+                )),
+            ])
+        )));
+    }
+
+    #[test]
+    fn obj_nested_arr() {
+        let input = r#"{
+            theobj: {
+                foo: [ 1,2, 3],
+                ok: false
+            }
+        }"#;
+        assert_eq!(parse_json(input), Ok(Json::Obj(
+            HashMap::from_iter(vec![
+                ("theobj".to_string(), Json::Obj(
+                    HashMap::from_iter(vec![
+                        ("foo".to_string(), Json::Arr(vec![Json::Num(1),Json::Num(2),Json::Num(3)])),
+                        ("ok".to_string(), Json::Bool(false))
+                    ])
+                )),
+            ])
+        )));
+    }
+
+    #[test]
+    fn obj_complicated() {
+        let input = r#"{
+            foo: "bar",
+            asd: 123,
+            sad: true,
+            theobj: {
+                foo: [ 1,2, 3],
+                ok: false
+            }
+        }"#;
+        let res = parse_json(input);
+        dbg!(&res);
+
+        assert_eq!(res, Ok(Json::Obj(
+            HashMap::from_iter(vec![
+                ("foo".to_string(), Json::Str("bar".to_string())),
+                ("asd".to_string(), Json::Num(123)),
+                ("sad".to_string(), Json::Bool(true)),
+                ("theobj".to_string(), Json::Obj(
+                    HashMap::from_iter(vec![
+                        ("foo".to_string(), Json::Arr(vec![Json::Num(1),Json::Num(2),Json::Num(3)])),
+                        ("ok".to_string(), Json::Bool(false))
+                    ])
+                )),
+            ])
+        )));
     }
 
 }
