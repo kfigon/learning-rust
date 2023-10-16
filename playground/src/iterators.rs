@@ -209,5 +209,85 @@ fn reduce_test(){
         ('s', 3),
         ('p', 1),
     ]), occurences);
+}
 
+#[cfg(test)]
+mod dhont {
+    use std::collections::HashMap;
+    
+    #[test]
+    fn dhont_1() {
+        let votes = HashMap::from_iter([
+            ("A", 720),
+            ("B", 300),
+            ("C", 480),
+        ]);
+        let res = calc_dhont(votes, 8);
+
+        assert_eq!(res, HashMap::from_iter([
+            ("A", 4),
+            ("B", 1),
+            ("C", 3),
+        ]));
+    }
+
+    #[test]
+    fn dhont_2() {
+        let votes = HashMap::from_iter([
+            ("A", 720),
+            ("B", 100),
+            ("C", 680),
+        ]);
+        let res = calc_dhont(votes, 8);
+
+        assert_eq!(res, HashMap::from_iter([
+            ("A", 4),
+            ("B", 0),
+            ("C", 4),
+        ]));
+    }
+
+    #[test]
+    fn dhont_3() {
+        let votes = HashMap::from_iter([
+            ("A", 35000),
+            ("B", 45000),
+            ("C", 70000),
+        ]);
+        let res = calc_dhont(votes, 5);
+
+        assert_eq!(res, HashMap::from_iter([
+            ("A", 1),
+            ("B", 1),
+            ("C", 3),
+        ]));
+    }
+
+    fn calc_dhont(votes: HashMap<&str, usize>, num_of_mandates: usize) -> HashMap<&str, usize> {
+        let calc_divisors = |divisor: usize| votes.iter().map(move |v| (*v.0, *v.1/divisor));
+
+        let mut election_divisors: Vec<(&str, usize)> = (1..=num_of_mandates)
+            .into_iter()
+            .map(calc_divisors)
+            .flatten()
+            .collect();
+
+        election_divisors.sort_by(|a,b| {
+            match b.1.cmp(&a.1) {
+                std::cmp::Ordering::Equal => votes.get(b.0).unwrap().cmp(votes.get(a.0).unwrap()),
+                other => other,
+            }
+        });
+
+        let init = HashMap::from_iter(
+            votes.iter().map(|v| (*v.0, 0))
+        );
+
+        election_divisors.into_iter()
+            .take(num_of_mandates)
+            .fold(init, |mut out, v| {
+                *out.entry(v.0).or_default() += 1;
+                out
+            })
+    }
 }
