@@ -22,7 +22,6 @@ pub fn lex(input: &str) -> Vec<Token> {
     let mut out = Vec::new();
     let mut line_number = 1;
 
-
     while let Some(current) = chars.next() {
         if current.is_whitespace() {
             if current == '\n' {
@@ -225,13 +224,13 @@ mod tests {
         let input = "< <= > >= ! !! !=";
 
         let expected = vec![
-            Token::Identifier { line: 1, v: "<".to_owned()},
-            Token::Identifier { line: 1, v: "<=".to_owned()},
-            Token::Identifier { line: 1, v: ">".to_owned()},
-            Token::Identifier { line: 1, v: ">=".to_owned()},
-            Token::Identifier { line: 1, v: "!".to_owned()},
-            Token::Identifier { line: 1, v: "!!".to_owned()},
-            Token::Identifier { line: 1, v: "!=".to_owned()},
+            Token::Identifier { line: 1, v: s("<")},
+            Token::Identifier { line: 1, v: s("<=")},
+            Token::Identifier { line: 1, v: s(">")},
+            Token::Identifier { line: 1, v: s(">=")},
+            Token::Identifier { line: 1, v: s("!")},
+            Token::Identifier { line: 1, v: s("!!")},
+            Token::Identifier { line: 1, v: s("!=")},
         ];
         assert_eq!(lex(input), expected)
     }

@@ -1,8 +1,6 @@
 use std::env;
 use std::fs;
 use std::io::{self, Write};
-use std::iter::Peekable;
-use std::vec::IntoIter;
 
 use crate::lexer::lex;
 use crate::parser::parse;
