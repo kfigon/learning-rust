@@ -41,23 +41,12 @@ impl<T: Iterator<Item = Token>> Parser<T> {
         while let Some(tok) = self.tokens.next() {
             match tok {
                 Token::Opening { line } => {
-                    let mut elems = vec![];
-                    while let Some(next) = self.tokens.next() {
-                        match next {
-                            Token::Closing { line } => break,
-                            Token::Invalid { line, v } => todo!(),
-                            Token::Identifier { line, v } => elems.push(SExpression::Atom(Atom::Identifier(v))),
-                            Token::Literal { line, v } => match v {
-                                lexer::Literal::Number(n) => elems.push(SExpression::Atom(Atom::Number(n))),
-                                lexer::Literal::String(s) => elems.push(SExpression::Atom(Atom::String(s))),
-                                lexer::Literal::Boolean(b) => elems.push(SExpression::Atom(Atom::Boolean(b))),
-                            },
-                            Token::Opening { line } => todo!() // todo: make recursive, but I struggle with borrowchecker
-                        }
+                    match self.parse_exp() {
+                        Ok(v) => self.expressions.push(SExpression::List(v)),
+                        Err(e) => todo!("impl err"),
                     }
-                    self.expressions.push(SExpression::List(elems));
                 }
-                _ => todo!(),
+                v => todo!("invalid tok {:?}", v),
             }
         }
 
@@ -67,6 +56,27 @@ impl<T: Iterator<Item = Token>> Parser<T> {
             Ok(self.expressions)
         }
     }
+
+    fn parse_exp(&mut self) -> Result<Vec<SExpression>, CompilerError> {
+        let mut elems = vec![];
+        while let Some(next) = self.tokens.next() {
+            match next {
+                Token::Closing { line } => {
+                    break;
+                },
+                Token::Invalid { line, v } => todo!("handle lexer errors"),
+                Token::Identifier { line, v } => elems.push(SExpression::Atom(Atom::Identifier(v))),
+                Token::Literal { line, v } => match v {
+                    lexer::Literal::Number(n) => elems.push(SExpression::Atom(Atom::Number(n))),
+                    lexer::Literal::String(s) => elems.push(SExpression::Atom(Atom::String(s))),
+                    lexer::Literal::Boolean(b) => elems.push(SExpression::Atom(Atom::Boolean(b))),
+                },
+                Token::Opening { line } => elems.push(SExpression::List(self.parse_exp()?)),
+            }
+        }
+        Ok(elems)
+    }
+
 }
 
 pub fn parse(tokens: Vec<Token>) -> Result<Vec<SExpression>, Vec<CompilerError>> {
@@ -125,8 +135,19 @@ mod tests {
     }
 
     #[test]
-    #[ignore = "todo"]
     fn nested_expr() {
-        todo!()
+        let input = "(+ 1 (* 2 4))";
+        let ast = compile(input).unwrap();
+        assert_eq!(ast, vec![
+            SExpression::List(vec![
+                SExpression::Atom(Atom::Identifier(s("+"))),
+                SExpression::Atom(Atom::Number(1)),
+                SExpression::List(vec![
+                    SExpression::Atom(Atom::Identifier(s("*"))),
+                    SExpression::Atom(Atom::Number(2)),
+                    SExpression::Atom(Atom::Number(4)),
+                ]),
+            ])
+        ]);   
     }
 }
