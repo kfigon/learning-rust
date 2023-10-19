@@ -1,4 +1,6 @@
-use crate::lexer::{Token};
+use std::iter::Peekable;
+
+use crate::lexer::{Token, self};
 
 #[derive(Debug, PartialEq)]
 pub struct Ast(Vec<SExpression>);
@@ -11,28 +13,24 @@ pub enum SExpression {
 
 #[derive(Debug, PartialEq)]
 pub enum CompilerError {
-    InvalidToken(String),
-    IncompleteExpression(String),
+    InvalidToken(lexer::Token),
+    IncompleteExpression(lexer::Token),
     UnexpectedEof,
 }
 
-struct Parser {
+
+struct Parser<T: Iterator<Item = Token>> {
     errors: Vec<CompilerError>,
     expressions: Vec<SExpression>,
-    tokens: Vec<Token>,
+    tokens: Peekable<T>,
 }
 
-impl Parser {
-    fn new(tokens: Vec<Token>) -> Parser {
+impl<T: Iterator<Item = Token>> Parser<T> {
+    fn new(tokens: T) -> Self {
         Parser { errors: vec![],
              expressions: vec![],
-             tokens: tokens,
+             tokens: tokens.peekable(),
         }
-    }
-
-    fn invalid_token_error(&self, line: usize, token: String) -> CompilerError {
-        CompilerError::InvalidToken(
-                format!("Invalid token on {line}: {}", token))
     }
 
     fn parse(&mut self) -> Result<SExpression, CompilerError> {

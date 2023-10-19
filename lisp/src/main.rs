@@ -1,6 +1,8 @@
 use std::env;
 use std::fs;
 use std::io::{self, Write};
+use std::iter::Peekable;
+use std::vec::IntoIter;
 
 use crate::lexer::lex;
 use crate::parser::parse;
@@ -9,12 +11,12 @@ mod lexer;
 mod parser;
 
 fn main() {
-    let args = env::args().collect::<Vec<_>>();
+    let args = env::args().skip(1).collect::<Vec<_>>();
 
     match args.len() {
-        1 => interpreter_mode(),
-        2 => file_mode(args.get(1).unwrap()),
-        _ => println!("Invalid numer of arguments, exiting"),
+        0 => interpreter_mode(),
+        1 => file_mode(args.get(0).unwrap()),
+        v => println!("Invalid numer of arguments {}, exiting", v),
     }
 }
 
