@@ -10,13 +10,19 @@ mod indexer;
 // todo: trie for additional search
 fn main() {
     let sentences = HashMap::from_iter([
-        ("A", "The car is driven on the road"),
-        ("B", "The truck is driven on the highway"),
+        ("fileA", "The car is driven on the road"),
+        ("fileB", "The truck is driven on the highway"),
     ]);
 
     let res = calc(&sentences);
     
-    for (w, r) in res.0 {
+    for (w, r) in &res.0 {
         println!("{w} -> {r:?}");
     }
+
+    println!();
+    let get = |word: &str| res.0.get(word).filter(|v| v.iter().any(|(_, ranking)| *ranking > 0.0));
+    println!("car -> {:?}", get("car"));
+    println!("truck -> {:?}", get("truck"));
+    println!("the -> {:?}", get("the"));
 }
