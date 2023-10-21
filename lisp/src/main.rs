@@ -7,6 +7,7 @@ use crate::parser::parse;
 
 mod lexer;
 mod parser;
+mod evaluator;
 
 fn main() {
     let args = env::args().skip(1).collect::<Vec<_>>();

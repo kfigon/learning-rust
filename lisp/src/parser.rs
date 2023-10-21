@@ -8,8 +8,8 @@ pub enum SExpression {
     List(Vec<SExpression>)
 }
 
-#[derive(Debug, PartialEq)]
-enum Atom {
+#[derive(Debug, PartialEq, Clone)]
+pub enum Atom {
     Number(i32),
     Boolean(bool),
     String(String),
