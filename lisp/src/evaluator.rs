@@ -19,9 +19,7 @@ impl Evaluator {
                 match symbol {
                     SExpression::Atom(at) => match at {
                         Atom::Identifier(id) => {
-                            let fun = self.env.env.get(id).unwrap();
-                            let r = fun(&e);
-                            Ok(r)
+                            Ok(self.env.env.get(id).unwrap()(&e))
                         },
                         _ => todo!(),
                     },
@@ -31,6 +29,18 @@ impl Evaluator {
         }
     }
 }
+
+pub fn eval(ast: Vec<SExpression>) -> Result<Vec<SExpression>, CompilerError> {
+    let mut evaluator = Evaluator::new();
+    let mut out = vec![];
+    
+    for e in ast {
+        out.push(evaluator.eval_expr(e)?);
+    }
+
+    Ok(out)
+}
+
 
 struct Env {
     env: HashMap<String, Box<dyn Fn(&SExpression)->SExpression>>
@@ -43,10 +53,8 @@ impl Env {
             ("-".to_string(), Box::new(minus)),
         ];
 
-        let e = HashMap::from_iter(x);
-
         Self { 
-            env: e
+            env: HashMap::from_iter(x)
         }
     }
 }
@@ -63,7 +71,11 @@ fn plus(e: &SExpression) -> SExpression {
                         crate::parser::Atom::Number(v) => out += *v,
                         _ => todo!()
                     },
-                    _ => todo!()
+                    SExpression::List(l) => {
+                        // let r = eval(*l).unwrap().get(0).unwrap();
+                        // out += r;
+                        todo!()
+                    }
                 }
             }
             return SExpression::Atom(Atom::Number(out));
@@ -73,17 +85,6 @@ fn plus(e: &SExpression) -> SExpression {
 
 fn minus(e: &SExpression) -> SExpression {
     todo!()
-}
-
-pub fn eval(ast: Vec<SExpression>) -> Result<Vec<SExpression>, CompilerError> {
-    let mut evaluator = Evaluator::new();
-    let mut out = vec![];
-    
-    for e in ast {
-        out.push(evaluator.eval_expr(e)?);
-    }
-
-    Ok(out)
 }
 
 #[cfg(test)]
@@ -101,6 +102,14 @@ mod test {
         let r = run("(+ 1 2)");
         assert_eq!(r, vec![
             SExpression::Atom(Atom::Number(3)),
+        ])
+    }
+
+    #[test]
+    fn eval_plus_nested() {
+        let r = run("(+ (+ 4 5) 2)");
+        assert_eq!(r, vec![
+            SExpression::Atom(Atom::Number(11)),
         ])
     }
 }
