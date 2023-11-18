@@ -1,10 +1,12 @@
 mod db;
 
+use std::sync::{Mutex, Arc};
+
 use askama::Template;
 use axum::{
     response::Html,
     routing::get,
-    Router, extract::Path,
+    Router, extract::{Path, State},
 };
 
 #[tokio::main]
@@ -18,19 +20,38 @@ async fn main() {
         .unwrap();
 }
 
+type Db = Arc<Mutex<Vec<String>>>;
+
 fn app() -> Router {
+    let db: Db = Arc::new(Mutex::new(vec![]));
+
     Router::new()
         .route("/", get(handler))
         .route("/healthcheck", get(|| async { "ok" }))
         .route("/greet/:name", get(greet))
+        .route("/all", get(list_all))
+        .with_state(db)
 }
 
 async fn handler() -> Html<&'static str> {
     Html("<h1>Hi</h1>")
 }
 
-async fn greet(Path(name): Path<String>) -> HelloTemplate {
+async fn greet(
+    Path(name): Path<String>,
+    State(db): State<Db>
+) -> HelloTemplate {
+    let mut v = db.lock().unwrap();
+    v.push(name.clone());
+
     HelloTemplate { name }
+}
+
+async fn list_all(
+    State(db): State<Db>
+) -> HelloTemplate {
+    let v = db.lock().unwrap();
+    HelloTemplate { name: v.join(", ") }
 }
 
 #[derive(Template)]
