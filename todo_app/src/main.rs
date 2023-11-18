@@ -84,6 +84,7 @@ mod tests {
         assert!(body.contains("<h1>Hello, foobar!</h1>"));
     }
 
+
     #[tokio::test]
     async fn invalid_url_test() {
         let app = app();
