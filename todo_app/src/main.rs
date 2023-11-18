@@ -11,16 +11,18 @@ use axum::{
 async fn main() {
     const PORT: i32 = 3000;
 
-    let app = Router::new()
-        .route("/", get(handler))
-        .route("/healthcheck", get(|| async { "ok" }))
-        .route("/greet/:name", get(greet));
-
     println!("starting on port {PORT}");
     axum::Server::bind(&format!("0.0.0.0:{PORT}").parse().unwrap())
-        .serve(app.into_make_service())
+        .serve(app().into_make_service())
         .await
         .unwrap();
+}
+
+fn app() -> Router {
+    Router::new()
+        .route("/", get(handler))
+        .route("/healthcheck", get(|| async { "ok" }))
+        .route("/greet/:name", get(greet))
 }
 
 async fn handler() -> Html<&'static str> {
@@ -35,4 +37,29 @@ async fn greet(Path(name): Path<String>) -> HelloTemplate {
 #[template(path = "hello.html")]
 struct HelloTemplate {
     name: String
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::{
+        body::Body,
+        http::{Request, StatusCode},
+    };
+    use tower::ServiceExt;
+
+    #[tokio::test]
+    async fn healthcheck_test() {
+        let app = app();
+
+        let response = app
+            .oneshot(Request::builder().uri("/healthcheck").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let body = hyper::body::to_bytes(response.into_body()).await.unwrap();
+        assert_eq!(&body[..], b"ok");
+    }
 }
