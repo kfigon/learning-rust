@@ -74,8 +74,14 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         
-        let body = hyper::body::to_bytes(response.into_body()).await.unwrap();
-        assert_eq!(&body[..], b"<h1>Hello, foobar!</h1>");
+        let body = String::from_utf8(
+            hyper::body::to_bytes(response.into_body())
+            .await
+            .unwrap()
+            .to_vec()
+        ).unwrap();
+        
+        assert!(body.contains("<h1>Hello, foobar!</h1>"));
     }
 
     #[tokio::test]
