@@ -77,4 +77,16 @@ mod tests {
         let body = hyper::body::to_bytes(response.into_body()).await.unwrap();
         assert_eq!(&body[..], b"<h1>Hello, foobar!</h1>");
     }
+
+    #[tokio::test]
+    async fn invalid_url_test() {
+        let app = app();
+
+        let response = app
+            .oneshot(Request::builder().uri("/foobarz").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    }
 }
