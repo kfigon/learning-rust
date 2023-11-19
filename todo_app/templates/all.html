@@ -1,0 +1,10 @@
+<h1>History</h1>
+{% if names.len() == 0 %}
+    <p>No elements</p>
+{% else %}
+    <ul>
+        {% for name in names %}
+        <li>{{ name }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}

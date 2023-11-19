@@ -49,15 +49,21 @@ async fn greet(
 
 async fn list_all(
     State(db): State<Db>
-) -> HelloTemplate {
+) -> SummaryTemplate {
     let v = db.lock().unwrap();
-    HelloTemplate { name: v.join(", ") }
+    SummaryTemplate { names: v.clone() }
 }
 
 #[derive(Template)]
 #[template(path = "hello.html")]
 struct HelloTemplate {
     name: String
+}
+
+#[derive(Template)]
+#[template(path = "all.html")]
+struct SummaryTemplate {
+    names: Vec<String>
 }
 
 #[cfg(test)]
