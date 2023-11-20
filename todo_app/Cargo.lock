@@ -1009,6 +1009,7 @@ dependencies = [
  "axum",
  "hyper",
  "postgres",
+ "serde",
  "tokio",
  "tower",
 ]

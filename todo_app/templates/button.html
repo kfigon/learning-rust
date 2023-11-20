@@ -1,0 +1,6 @@
+<div id="app">
+    <button type="button" hx-post="/clicked" hx-target="#app" hx-vals='{"v": {{ count }} }'>
+        Click me!
+    </button>
+    <p>{{ count }}</p>
+</div>

@@ -1,12 +1,12 @@
 mod db;
 
-use std::sync::{Mutex, Arc};
+use std::{sync::{Mutex, Arc}, collections::HashMap};
 
 use askama::Template;
 use axum::{
     response::Html,
-    routing::get,
-    Router, extract::{Path, State},
+    routing::{get,post},
+    Router, extract::{Path, State}, Form,
 };
 
 #[tokio::main]
@@ -30,6 +30,9 @@ fn app() -> Router {
         .route("/healthcheck", get(|| async { "ok" }))
         .route("/greet/:name", get(greet))
         .route("/all", get(list_all))
+
+        .route("/main", get(main_page))
+        .route("/clicked", post(clicked))
         .with_state(db)
 }
 
@@ -52,6 +55,31 @@ async fn list_all(
 ) -> SummaryTemplate {
     let v = db.lock().unwrap();
     SummaryTemplate { names: v.clone() }
+}
+
+async fn main_page() -> MainPage {
+    MainPage { button_div: ButtonTemplate { count: 0 } }
+}
+
+async fn clicked(
+    Form(f): Form<HashMap<String, String>>
+) -> ButtonTemplate {
+    let count = f.get("v")
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or_default() + 1;
+    ButtonTemplate { count }
+}
+
+#[derive(Template)]
+#[template(path = "button.html")]
+struct ButtonTemplate {
+    count: usize
+}
+
+#[derive(Template)]
+#[template(path = "main.html")]
+struct MainPage {
+    button_div: ButtonTemplate
 }
 
 #[derive(Template)]
