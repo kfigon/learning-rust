@@ -2,7 +2,7 @@ use std::{iter::Peekable};
 
 use crate::lexer::{Token, self};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum SExpression {
     Atom(Atom),
     List(Vec<SExpression>)
@@ -10,6 +10,7 @@ pub enum SExpression {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Atom {
+    Void,
     Number(i32),
     Boolean(bool),
     String(String),
@@ -21,6 +22,7 @@ pub enum CompilerError {
     InvalidToken(lexer::Token),
     IncompleteExpression(lexer::Token),
     UnexpectedEof,
+    UnknownSymbol(String),
 }
 
 struct Parser<T: Iterator<Item = Token>> {

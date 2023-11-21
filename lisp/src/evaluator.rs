@@ -15,15 +15,26 @@ impl Evaluator {
         match &e {
             SExpression::Atom(v) => Ok(SExpression::Atom(v.clone())),
             SExpression::List(v) => {
-                let symbol = v.get(0).unwrap();
+                let symbol = v.get(0);
+                let symbol = match symbol {
+                    Some(s) => s,
+                    None => return Ok(SExpression::Atom(Atom::Void)),
+                };
+
                 match symbol {
                     SExpression::Atom(at) => match at {
                         Atom::Identifier(id) => {
-                            Ok(self.env.env.get(id).unwrap()(&e))
+                            let func = self.env.env.get(id);
+                            let func = match func {
+                                Some(s) => s,
+                                None => return Err(CompilerError::UnknownSymbol(id.clone())),
+                            };
+
+                            Ok(func(&e))
                         },
-                        _ => todo!(),
+                        _ => Ok(SExpression::Atom(at.clone())),
                     },
-                    _ => todo!(),
+                    SExpression::List(_) => self.eval_expr(symbol.clone())
                 }
             },
         }
