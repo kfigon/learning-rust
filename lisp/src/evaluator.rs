@@ -11,10 +11,10 @@ impl Evaluator {
         Self { env: Env::std_env() }
     }
 
-    fn eval_expr(&mut self, e: SExpression) -> Result<SExpression, CompilerError> {
-        match &e {
+    fn eval_expr(&self, e: SExpression) -> Result<SExpression, CompilerError> {
+        match e {
             SExpression::Atom(v) => Ok(SExpression::Atom(v.clone())),
-            SExpression::List(v) => {
+            SExpression::List(ref v) => {
                 let symbol = v.get(0);
                 let symbol = match symbol {
                     Some(s) => s,
@@ -30,7 +30,7 @@ impl Evaluator {
                                 None => return Err(CompilerError::UnknownSymbol(id.clone())),
                             };
 
-                            Ok(func(&e))
+                            Ok(func(self, e))
                         },
                         _ => Ok(SExpression::Atom(at.clone())),
                     },
@@ -54,12 +54,12 @@ pub fn eval(ast: Vec<SExpression>) -> Result<Vec<SExpression>, CompilerError> {
 
 
 struct Env {
-    env: HashMap<String, Box<dyn Fn(&SExpression)->SExpression>>
+    env: HashMap<String, Box<dyn Fn(&Evaluator,SExpression)->SExpression>>
 }
 
 impl Env {
     fn std_env() -> Self {
-        let x: Vec<(String, Box<dyn Fn(&SExpression) -> SExpression>)> = vec![
+        let x: Vec<(String, Box<dyn Fn(&Evaluator, SExpression) -> SExpression>)> = vec![
             ("+".to_string(), Box::new(plus)),
             ("-".to_string(), Box::new(minus)),
         ];
@@ -71,7 +71,7 @@ impl Env {
 }
 
 // todo: return Result here
-fn plus(e: &SExpression) -> SExpression {
+fn plus(eval: &Evaluator, e: SExpression) -> SExpression {
     match e {
         SExpression::Atom(_) => todo!(),
         SExpression::List(v) => {
@@ -85,16 +85,16 @@ fn plus(e: &SExpression) -> SExpression {
                     },
                     SExpression::List(l) => {
                         // e.eval_expr - call recursively and reduce on Number
-                        // for el in l {
-                        //     let r = e.eval_expr(el).unwrap();
-                        //     match r {
-                        //         SExpression::Atom(n) => match n {
-                        //             crate::parser::Atom::Number(v) => out += v,
-
-                        //         }
-                        //     }
-                        // }
-                        todo!()
+                        for el in l {
+                            let r = eval.eval_expr(el.clone()).unwrap();
+                            match r {
+                                SExpression::Atom(n) => match n {
+                                    crate::parser::Atom::Number(v) => out += v,
+                                    _ => todo!()
+                                }
+                                _ => todo!()
+                            }
+                        }
                     }
                 }
             }
@@ -103,7 +103,7 @@ fn plus(e: &SExpression) -> SExpression {
     }
 }
 
-fn minus(e: &SExpression) -> SExpression {
+fn minus(eval: &Evaluator, e: SExpression) -> SExpression {
     todo!()
 }
 
