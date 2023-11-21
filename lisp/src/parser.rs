@@ -39,14 +39,14 @@ impl<T: Iterator<Item = Token>> Parser<T> {
 
     fn parse(mut self) -> Result<Vec<SExpression>, Vec<CompilerError>> {
         while let Some(tok) = self.tokens.next() {
-            match tok {
+            match &tok {
                 Token::Opening { line } => {
                     match self.parse_exp() {
                         Ok(v) => self.expressions.push(SExpression::List(v)),
-                        Err(e) => todo!("impl err"),
+                        Err(e) => self.errors.push(e),
                     }
                 }
-                v => todo!("invalid tok {:?}", v),
+                v => self.errors.push(CompilerError::InvalidToken(tok)),
             }
         }
 
@@ -60,16 +60,14 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     fn parse_exp(&mut self) -> Result<Vec<SExpression>, CompilerError> {
         let mut elems = vec![];
         while let Some(next) = self.tokens.next() {
-            match next {
-                Token::Closing { line } => {
-                    break;
-                },
-                Token::Invalid { line, v } => todo!("handle lexer errors"),
-                Token::Identifier { line, v } => elems.push(SExpression::Atom(Atom::Identifier(v))),
+            match &next {
+                Token::Closing { line } => break,
+                Token::Invalid { line, v } => return Err(CompilerError::InvalidToken(next.clone())),
+                Token::Identifier { line, v } => elems.push(SExpression::Atom(Atom::Identifier(v.clone()))),
                 Token::Literal { line, v } => match v {
-                    lexer::Literal::Number(n) => elems.push(SExpression::Atom(Atom::Number(n))),
-                    lexer::Literal::String(s) => elems.push(SExpression::Atom(Atom::String(s))),
-                    lexer::Literal::Boolean(b) => elems.push(SExpression::Atom(Atom::Boolean(b))),
+                    lexer::Literal::Number(n) => elems.push(SExpression::Atom(Atom::Number(*n))),
+                    lexer::Literal::String(s) => elems.push(SExpression::Atom(Atom::String(s.clone()))),
+                    lexer::Literal::Boolean(b) => elems.push(SExpression::Atom(Atom::Boolean(*b))),
                 },
                 Token::Opening { line } => elems.push(SExpression::List(self.parse_exp()?)),
             }
