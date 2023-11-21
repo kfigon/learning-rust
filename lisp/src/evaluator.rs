@@ -56,17 +56,14 @@ impl Evaluator {
                             crate::parser::Atom::Number(v) => out += *v,
                             _ => todo!("invalid atom")
                         },
-                        SExpression::List(l) => {
-                            // e.eval_expr - call recursively and reduce on Number
-                            for el in l {
-                                let r = self.eval_expr(el.clone()).unwrap();
-                                match r {
-                                    SExpression::Atom(n) => match n {
-                                        crate::parser::Atom::Number(v) => out += v,
-                                        _ => todo!()
-                                    }
-                                    _ => todo!()
+                        _ => {
+                            let res = self.eval_expr(a.clone()).unwrap();
+                            match res {
+                                SExpression::Atom(a) => match a {
+                                    crate::parser::Atom::Number(v) => out += v,
+                                    _ => todo!("invalid atom")
                                 }
+                                _ => todo!("invalid plus result {res:?}"),
                             }
                         }
                     }
