@@ -11,7 +11,7 @@ impl Evaluator {
         Self { env: Env::std_env() }
     }
 
-    fn eval_expr(&self, e: SExpression) -> Result<SExpression, CompilerError> {
+    fn eval_expr(&mut self, e: SExpression) -> Result<SExpression, CompilerError> {
         match e {
             SExpression::Atom(v) => Ok(SExpression::Atom(v.clone())),
             SExpression::List(ref v) => {
@@ -24,6 +24,9 @@ impl Evaluator {
                 match symbol {
                     SExpression::Atom(at) => match at {
                         Atom::Identifier(id) => {
+                            if id == "+" {
+                                return Ok(self.plus(e));
+                            }
                             let func = self.env.env.get(id);
                             let func = match func {
                                 Some(s) => s,
@@ -36,6 +39,39 @@ impl Evaluator {
                     },
                     SExpression::List(_) => self.eval_expr(symbol.clone())
                 }
+            },
+        }
+    }
+
+    // todo: return Result here
+    fn plus(&mut self, e: SExpression) -> SExpression {
+        match e {
+            SExpression::Atom(_) => todo!(),
+            SExpression::List(v) => {
+                let args = &v[1..];
+                let mut out = 0;
+                for a in args {
+                    match a {
+                        SExpression::Atom(a) => match a {
+                            crate::parser::Atom::Number(v) => out += *v,
+                            _ => todo!("invalid atom")
+                        },
+                        SExpression::List(l) => {
+                            // e.eval_expr - call recursively and reduce on Number
+                            for el in l {
+                                let r = self.eval_expr(el.clone()).unwrap();
+                                match r {
+                                    SExpression::Atom(n) => match n {
+                                        crate::parser::Atom::Number(v) => out += v,
+                                        _ => todo!()
+                                    }
+                                    _ => todo!()
+                                }
+                            }
+                        }
+                    }
+                }
+                return SExpression::Atom(Atom::Number(out));
             },
         }
     }
@@ -59,52 +95,15 @@ struct Env {
 
 impl Env {
     fn std_env() -> Self {
-        let x: Vec<(String, Box<dyn Fn(&Evaluator, SExpression) -> SExpression>)> = vec![
-            ("+".to_string(), Box::new(plus)),
-            ("-".to_string(), Box::new(minus)),
-        ];
+        // let x: Vec<(String, Box<dyn Fn(&Evaluator, SExpression) -> SExpression>)> = vec![
+        //     ("+".to_string(), Box::new(plus)),
+        //     ("-".to_string(), Box::new(minus)),
+        // ];
 
         Self { 
-            env: HashMap::from_iter(x)
+            env: HashMap::new()//from_iter(x)
         }
     }
-}
-
-// todo: return Result here
-fn plus(eval: &Evaluator, e: SExpression) -> SExpression {
-    match e {
-        SExpression::Atom(_) => todo!(),
-        SExpression::List(v) => {
-            let args = &v[1..];
-            let mut out = 0;
-            for a in args {
-                match a {
-                    SExpression::Atom(a) => match a {
-                        crate::parser::Atom::Number(v) => out += *v,
-                        _ => todo!("invalid atom")
-                    },
-                    SExpression::List(l) => {
-                        // e.eval_expr - call recursively and reduce on Number
-                        for el in l {
-                            let r = eval.eval_expr(el.clone()).unwrap();
-                            match r {
-                                SExpression::Atom(n) => match n {
-                                    crate::parser::Atom::Number(v) => out += v,
-                                    _ => todo!()
-                                }
-                                _ => todo!()
-                            }
-                        }
-                    }
-                }
-            }
-            return SExpression::Atom(Atom::Number(out));
-        },
-    }
-}
-
-fn minus(eval: &Evaluator, e: SExpression) -> SExpression {
-    todo!()
 }
 
 #[cfg(test)]
