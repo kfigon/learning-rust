@@ -70,6 +70,7 @@ impl Env {
     }
 }
 
+// todo: return Result here
 fn plus(e: &SExpression) -> SExpression {
     match e {
         SExpression::Atom(_) => todo!(),
@@ -80,11 +81,19 @@ fn plus(e: &SExpression) -> SExpression {
                 match a {
                     SExpression::Atom(a) => match a {
                         crate::parser::Atom::Number(v) => out += *v,
-                        _ => todo!()
+                        _ => todo!("invalid atom")
                     },
                     SExpression::List(l) => {
-                        // let r = eval(*l).unwrap().get(0).unwrap();
-                        // out += r;
+                        // e.eval_expr - call recursively and reduce on Number
+                        // for el in l {
+                        //     let r = e.eval_expr(el).unwrap();
+                        //     match r {
+                        //         SExpression::Atom(n) => match n {
+                        //             crate::parser::Atom::Number(v) => out += v,
+
+                        //         }
+                        //     }
+                        // }
                         todo!()
                     }
                 }
