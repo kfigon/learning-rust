@@ -20,6 +20,7 @@ async fn main() {
         .unwrap();
 }
 
+// for real IO connections use tokio::Mutex
 type Db = Arc<Mutex<Vec<String>>>;
 
 fn app() -> Router {
