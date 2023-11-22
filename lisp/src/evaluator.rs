@@ -31,18 +31,11 @@ impl Evaluator {
                     SExpression::Number(_) => Err(CompilerError::InvalidList(e)),
                     SExpression::Boolean(_) => Err(CompilerError::InvalidList(e)),
                     SExpression::String(_) => Err(CompilerError::InvalidList(e)),
-                    SExpression::Identifier(id) => {
-                            if id == "+" {
-                                return self.plus(e);
-                            } else if id == "=" {
-                                return self.equal(e);
-                            } else if id == "!=" {
-                                return self.not_equal(e);
-                            } else if id == "if" {
-                                return self.if_expression(e);
-                            }
-                            return Err(CompilerError::UnknownSymbol(id.clone()));
-                        },
+                    SExpression::Identifier(id) if id == "+" => self.plus(e),
+                    SExpression::Identifier(id) if id == "=" => self.equal(e),
+                    SExpression::Identifier(id) if id == "!=" => self.not_equal(e),
+                    SExpression::Identifier(id) if id == "if" => self.if_expression(e),
+                    SExpression::Identifier(id) => Err(CompilerError::UnknownSymbol(id.clone())), // todo: env
                     SExpression::List(_) => self.eval_expr(first.clone()),
                 }
             }
@@ -87,7 +80,7 @@ impl Evaluator {
                     let num = self.eval_to_number(&a)?;
                     out += num;
                 }
-                return Ok(SExpression::Number(out));
+                Ok(SExpression::Number(out))
             },
             _ => Err(CompilerError::InvalidList(e)),
         }
