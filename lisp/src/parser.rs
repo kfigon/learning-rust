@@ -4,17 +4,12 @@ use crate::lexer::{Token, self};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum SExpression {
-    Atom(Atom),
-    List(Vec<SExpression>)
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum Atom {
     Void,
     Number(i32),
     Boolean(bool),
     String(String),
     Identifier(String),
+    List(Vec<SExpression>)
 }
 
 #[derive(Debug, PartialEq)]
@@ -23,6 +18,7 @@ pub enum CompilerError {
     IncompleteExpression(lexer::Token),
     UnexpectedEof,
     UnknownSymbol(String),
+    InvalidList(SExpression),
 }
 
 struct Parser<T: Iterator<Item = Token>> {
@@ -65,11 +61,11 @@ impl<T: Iterator<Item = Token>> Parser<T> {
             match &next {
                 Token::Closing { line } => break,
                 Token::Invalid { line, v } => return Err(CompilerError::InvalidToken(next.clone())),
-                Token::Identifier { line, v } => elems.push(SExpression::Atom(Atom::Identifier(v.clone()))),
+                Token::Identifier { line, v } => elems.push(SExpression::Identifier(v.clone())),
                 Token::Literal { line, v } => match v {
-                    lexer::Literal::Number(n) => elems.push(SExpression::Atom(Atom::Number(*n))),
-                    lexer::Literal::String(s) => elems.push(SExpression::Atom(Atom::String(s.clone()))),
-                    lexer::Literal::Boolean(b) => elems.push(SExpression::Atom(Atom::Boolean(*b))),
+                    lexer::Literal::Number(n) => elems.push(SExpression::Number(*n)),
+                    lexer::Literal::String(s) => elems.push(SExpression::String(s.clone())),
+                    lexer::Literal::Boolean(b) => elems.push(SExpression::Boolean(*b)),
                 },
                 Token::Opening { line } => elems.push(SExpression::List(self.parse_exp()?)),
             }
@@ -108,9 +104,9 @@ mod tests {
         let ast = compile(input).unwrap();
         assert_eq!(ast, vec![
             SExpression::List(vec![
-                SExpression::Atom(Atom::Identifier(s("+"))),
-                SExpression::Atom(Atom::Number(1)),
-                SExpression::Atom(Atom::Number(2)),
+                SExpression::Identifier(s("+")),
+                SExpression::Number(1),
+                SExpression::Number(2),
             ])
         ]);
     }
@@ -122,14 +118,14 @@ mod tests {
         let ast = compile(input).unwrap();
         assert_eq!(ast, vec![
             SExpression::List(vec![
-                SExpression::Atom(Atom::Identifier(s("+"))),
-                SExpression::Atom(Atom::Number(1)),
-                SExpression::Atom(Atom::Number(2)),
+                SExpression::Identifier(s("+")),
+                SExpression::Number(1),
+                SExpression::Number(2),
             ]),
             SExpression::List(vec![
-                SExpression::Atom(Atom::Identifier(s("-"))),
-                SExpression::Atom(Atom::Number(3)),
-                SExpression::Atom(Atom::Number(4)),
+                SExpression::Identifier(s("-")),
+                SExpression::Number(3),
+                SExpression::Number(4),
             ])
         ]);
     }
@@ -140,12 +136,12 @@ mod tests {
         let ast = compile(input).unwrap();
         assert_eq!(ast, vec![
             SExpression::List(vec![
-                SExpression::Atom(Atom::Identifier(s("+"))),
-                SExpression::Atom(Atom::Number(1)),
+            SExpression::Identifier(s("+")),
+                SExpression::Number(1),
                 SExpression::List(vec![
-                    SExpression::Atom(Atom::Identifier(s("*"))),
-                    SExpression::Atom(Atom::Number(2)),
-                    SExpression::Atom(Atom::Number(4)),
+                    SExpression::Identifier(s("*")),
+                    SExpression::Number(2),
+                    SExpression::Number(4),
                 ]),
             ])
         ]);   

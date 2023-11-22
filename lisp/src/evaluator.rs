@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::parser::{CompilerError, SExpression, Atom};
+use crate::parser::{CompilerError, SExpression};
 
 struct Evaluator {
     env: Env
@@ -13,63 +13,66 @@ impl Evaluator {
 
     fn eval_expr(&mut self, e: SExpression) -> Result<SExpression, CompilerError> {
         match e {
-            SExpression::Atom(v) => Ok(SExpression::Atom(v.clone())),
+            SExpression::Void => Ok(e),
+            SExpression::Number(_) => Ok(e),
+            SExpression::Boolean(_) => Ok(e),
+            SExpression::String(_) => Ok(e),
+            SExpression::Identifier(_) => Ok(e),
             SExpression::List(ref v) => {
-                let symbol = v.get(0);
-                let symbol = match symbol {
+                let first = v.get(0);
+                let first = match first {
                     Some(s) => s,
-                    None => return Ok(SExpression::Atom(Atom::Void)),
+                    None => return Ok(SExpression::Void),
                 };
 
-                match symbol {
-                    SExpression::Atom(at) => match at {
-                        Atom::Identifier(id) => {
+                match first {
+                    SExpression::Void => Err(CompilerError::InvalidList(e)),
+                    SExpression::Number(_) => Err(CompilerError::InvalidList(e)),
+                    SExpression::Boolean(_) => Err(CompilerError::InvalidList(e)),
+                    SExpression::String(_) => Err(CompilerError::InvalidList(e)),
+                    SExpression::Identifier(id) => {
                             if id == "+" {
-                                return Ok(self.plus(e));
+                                return self.plus(e);
                             }
-                            let func = self.env.env.get(id);
-                            let func = match func {
-                                Some(s) => s,
-                                None => return Err(CompilerError::UnknownSymbol(id.clone())),
-                            };
+                            return Err(CompilerError::UnknownSymbol(id.clone()));
+                            // let func = self.env.env.get(id);
+                            // let func = match func {
+                            //     Some(s) => s,
+                            //     None => return Err(CompilerError::UnknownSymbol(id.clone())),
+                            // };
 
-                            Ok(func(self, e))
+                            // Ok(func(self, e))
                         },
-                        _ => Ok(SExpression::Atom(at.clone())),
-                    },
-                    SExpression::List(_) => self.eval_expr(symbol.clone())
+                    SExpression::List(_) => self.eval_expr(first.clone()),
                 }
-            },
+            }
         }
     }
 
-    // todo: return Result here
-    fn plus(&mut self, e: SExpression) -> SExpression {
+    fn plus(&mut self, e: SExpression) -> Result<SExpression, CompilerError> {
         match e {
-            SExpression::Atom(_) => todo!(),
             SExpression::List(v) => {
                 let args = &v[1..];
                 let mut out = 0;
                 for a in args {
                     match a {
-                        SExpression::Atom(a) => match a {
-                            crate::parser::Atom::Number(v) => out += *v,
-                            _ => todo!("invalid atom")
-                        },
+                        SExpression::Number(n) => out += *n,
                         _ => {
-                            let res = self.eval_expr(a.clone()).unwrap();
+                            let res = self.eval_expr(a.clone())?;
                             match res {
-                                SExpression::Atom(a) => match a {
-                                    crate::parser::Atom::Number(v) => out += v,
-                                    _ => todo!("invalid atom")
-                                }
-                                _ => todo!("invalid plus result {res:?}"),
+                                SExpression::Number(n) => out += n,
+                                _ => return Err(CompilerError::InvalidList(res)),
                             }
                         }
                     }
                 }
-                return SExpression::Atom(Atom::Number(out));
+                return Ok(SExpression::Number(out));
             },
+            SExpression::Identifier(_) => Err(CompilerError::InvalidList(e)),
+            SExpression::Void => Err(CompilerError::InvalidList(e)),
+            SExpression::Number(_) => Err(CompilerError::InvalidList(e)),
+            SExpression::Boolean(_) => Err(CompilerError::InvalidList(e)),
+            SExpression::String(_) => Err(CompilerError::InvalidList(e)),
         }
     }
 }
@@ -105,7 +108,7 @@ impl Env {
 
 #[cfg(test)]
 mod test {
-    use crate::{parser::{parse, Atom}, lexer::lex};
+    use crate::{parser::{parse}, lexer::lex};
 
     use super::*;
 
@@ -117,7 +120,7 @@ mod test {
     fn eval_plus() {
         let r = run("(+ 1 2)");
         assert_eq!(r, vec![
-            SExpression::Atom(Atom::Number(3)),
+            SExpression::Number(3),
         ])
     }
 
@@ -125,7 +128,7 @@ mod test {
     fn eval_plus_nested() {
         let r = run("(+ (+ 4 5) 2)");
         assert_eq!(r, vec![
-            SExpression::Atom(Atom::Number(11)),
+            SExpression::Number(11),
         ])
     }
 }
