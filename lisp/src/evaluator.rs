@@ -36,17 +36,12 @@ impl Evaluator {
                                 return self.plus(e);
                             } else if id == "=" {
                                 return self.equal(e);
+                            } else if id == "!=" {
+                                return self.not_equal(e);
                             } else if id == "if" {
                                 return self.if_expression(e);
                             }
                             return Err(CompilerError::UnknownSymbol(id.clone()));
-                            // let func = self.env.env.get(id);
-                            // let func = match func {
-                            //     Some(s) => s,
-                            //     None => return Err(CompilerError::UnknownSymbol(id.clone())),
-                            // };
-
-                            // Ok(func(self, e))
                         },
                     SExpression::List(_) => self.eval_expr(first.clone()),
                 }
@@ -115,19 +110,24 @@ impl Evaluator {
     fn equal(&mut self, e: SExpression) -> Result<SExpression, CompilerError> {
         match e {
             SExpression::List(ref v) if v.len() == 3 => {
-                let first = self.eval_expr(v[1].clone())?;
-                let second = self.eval_expr(v[2].clone())?;
-                match (first, second) {
+                match (self.eval_expr(v[1].clone())?, self.eval_expr(v[2].clone())?) {
                     (SExpression::Number(a), SExpression::Number(b)) => Ok(SExpression::Boolean(a==b)),
                     (SExpression::Boolean(a), SExpression::Boolean(b)) => Ok(SExpression::Boolean(a==b)),
                     (SExpression::String(a), SExpression::String(b)) => Ok(SExpression::Boolean(a==b)),
-                    // todo: identifiers
                     _ => Err(CompilerError::InvalidList(e.clone()))
                 }
             },
             _ => Err(CompilerError::InvalidList(e)),
         }
     }
+
+    fn not_equal(&mut self, e: SExpression) -> Result<SExpression, CompilerError> {
+        match self.equal(e.clone())? {
+            SExpression::Boolean(a) => Ok(SExpression::Boolean(!a)),
+            _ => Err(CompilerError::InvalidList(e)),
+        }
+    }
+    
 }
 
 pub fn eval(ast: Vec<SExpression>) -> Result<Vec<SExpression>, CompilerError> {
@@ -199,5 +199,23 @@ mod test {
     fn if_expression_2() {
         let r = run(r#"(if (= (+ 1 1) 2) "ok" "not ok")"#);
         assert_eq!(r, vec![SExpression::String("\"ok\"".to_owned())])
+    }
+
+    #[test]
+    fn comparison_neq() {
+        let r = run("(!= 1 2)");
+        assert_eq!(r, vec![SExpression::Boolean(true)])
+    }
+
+    #[test]
+    fn comparison_neq_nested() {
+        let r = run("(!= (= 1 1) (= 4 2))");
+        assert_eq!(r, vec![SExpression::Boolean(true)])
+    }
+
+    #[test]
+    fn comparison_eq() {
+        let r = run("(= 1 2)");
+        assert_eq!(r, vec![SExpression::Boolean(false)])
     }
 }
