@@ -89,9 +89,9 @@ impl Evaluator {
             SExpression::List(v) if v.len() == 4 => {
                 let condition = self.eval_to_bool(&v[1])?;
                 if condition {
-                    Ok(v[2].clone())
+                    Ok(self.eval_expr(v[2].clone())?)
                 } else {
-                    Ok(v[3].clone())
+                    Ok(self.eval_expr(v[3].clone())?)
                 }
             },
             _ => Err(CompilerError::InvalidList(e)),
@@ -206,6 +206,12 @@ mod test {
     fn if_expression_2() {
         let r = run(r#"(if (= (+ 1 1) 2) "ok" "not ok")"#);
         assert_eq!(r, vec![SExpression::String("\"ok\"".to_owned())])
+    }
+
+    #[test]
+    fn if_expression_3() {
+        let r = run(r#"(if (= (+ 1 1) 2) (+ 10 10) 0)"#);
+        assert_eq!(r, vec![SExpression::Number(20)])
     }
 
     #[test]
