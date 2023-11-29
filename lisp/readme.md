@@ -7,7 +7,7 @@ My attempt to write a Lisp interpreter, loosely based on
 
 Todo:
 * repl (including command history)
-* envs, more operators, lambdas
+* scoping, more operators, lambdas
 
 ## Run
 ```
