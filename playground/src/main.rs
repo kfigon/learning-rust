@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 mod methods;
 mod bencode;
 mod fan_out;
