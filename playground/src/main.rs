@@ -21,6 +21,7 @@ mod async_learn;
 mod macros;
 mod errors;
 mod tree_array;
+mod more_smart_pointers;
 
 
 fn main() {

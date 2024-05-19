@@ -7,6 +7,7 @@ mod tests {
         idx: i32,
     }
 
+    // to automatically unwrap values from the wrapping type
     impl Deref for WrapArray {
         type Target = i32;
 
