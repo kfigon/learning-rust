@@ -95,3 +95,6 @@ mod refcell_tests {
         assert_eq!(*f.v.borrow(), &3); // same as cell, but for references
     }
 }
+
+// COW - copy on write. A type that encodes wheater we have owned or borrowed data. We can accept both then
+// AsRef - 

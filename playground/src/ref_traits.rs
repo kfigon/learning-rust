@@ -2,6 +2,16 @@
 mod tests {
     use std::ops::Deref;
 
+    fn my_foo(v: &impl AsRef<str>) -> &str {
+        v.as_ref()
+    }
+
+    #[test]
+    fn asref_test() {
+        assert_eq!(my_foo(&"foo"), "foo");
+        assert_eq!(my_foo(&"foo".to_string()), "foo");
+    }
+
     struct WrapArray {
         data: Vec<i32>,
         idx: i32,
@@ -24,16 +34,6 @@ mod tests {
         };
 
         assert_eq!(*d, 6);
-    }
-
-    fn my_foo(v: &impl AsRef<str>) -> &str {
-        v.as_ref()
-    }
-
-    #[test]
-    fn asref_test() {
-        assert_eq!(my_foo(&"foo"), "foo");
-        assert_eq!(my_foo(&"foo".to_string()), "foo");
     }
 
     #[test]
