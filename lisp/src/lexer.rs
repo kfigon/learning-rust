@@ -34,11 +34,10 @@ pub fn lex(input: &str) -> Vec<Token> {
             '(' => Some(Token::Opening{line: line_number}),
             '"' => {
                 let word = current.to_string() + &read_until(&mut chars, |c| c != '"');
-                match chars.peek() {
-                    Some('"') => {
-                        chars.next();
-                        Some(Token::Literal { line: line_number, v: Literal::String(word + "\"")})
-                    },
+                let last_char = chars.peek();
+                match last_char {
+                    // we need to terminate the string. Next.unwrap is safe here, as we just peeked
+                    Some('"') => Some(Token::Literal { line: line_number, v: Literal::String(word + &chars.next().unwrap().to_string())}),
                     _ => Some(Token::Invalid{line: line_number, v: word})
                 }
             },
