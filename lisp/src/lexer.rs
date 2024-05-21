@@ -23,55 +23,53 @@ pub fn lex(input: &str) -> Vec<Token> {
     let mut line_number = 1;
 
     while let Some(current) = chars.next() {
-        if current.is_whitespace() {
-            if current == '\n' {
-                line_number += 1;
-            }
-        } else if current == ')' {
-            out.push(Token::Closing{line: line_number});
-        } else if current == '(' {
-            out.push(Token::Opening{line: line_number});
-        } else if current == '"' {
-            let word = read_until(&mut chars, current, |c| *c != '"');
-            if let Some('"') = chars.peek() {
-                chars.next();
-                out.push(Token::Literal { line: line_number, v: Literal::String(word + "\"")});
-            } else {
-                out.push(Token::Invalid{line: line_number, v: word});
-            }
-        } else if current.is_ascii_digit() {
-            let num = read_until(&mut chars, current, |c| c.is_ascii_digit());
-            match num.parse() {
-                Ok(v) => out.push(Token::Literal { line: line_number, v: Literal::Number(v)}),
-                Err(_) => out.push(Token::Invalid{line: line_number, v: num}),
-            }
-        } else {
-            let word = read_until(&mut chars, current, |c| !c.is_whitespace() && *c != ')' && *c !='(');
-            if word == "false" || word == "true" {
-                match word.parse() {
-                    Ok(v) => out.push(Token::Literal { line: line_number, v: Literal::Boolean(v)}),
-                    Err(_) => out.push(Token::Invalid{line: line_number, v: word}),
+        let tok = match current {
+            c if c.is_whitespace() => {
+                if current == '\n' {
+                    line_number += 1;
                 }
-            } else {
-                out.push(Token::Identifier{line: line_number, v:word});
+                None
+            },
+            ')' => Some(Token::Closing{line: line_number}),
+            '(' => Some(Token::Opening{line: line_number}),
+            '"' => {
+                let word = current.to_string() + &read_until(&mut chars, |c| c != '"');
+                match chars.peek() {
+                    Some('"') => {
+                        chars.next();
+                        Some(Token::Literal { line: line_number, v: Literal::String(word + "\"")})
+                    },
+                    _ => Some(Token::Invalid{line: line_number, v: word})
+                }
+            },
+            other => {
+                let word = other.to_string() + &read_until(&mut chars, |c| !c.is_whitespace() && c != ')' && c !='(' && c != '"');
+                match word.parse::<i32>() {
+                    Ok(num) => Some(Token::Literal { line: line_number, v: Literal::Number(num)}),
+                    _ => match word.parse::<bool>() {
+                        Ok(v) => Some(Token::Literal { line: line_number, v: Literal::Boolean(v)}),
+                        Err(_) => Some(Token::Identifier{line: line_number, v:word})
+                    }
+                }
             }
+        };
+    
+        if let Some(t) = tok {
+            out.push(t);
         }
     }
     out
 }
 
-fn read_until<F>(chars: &mut Peekable<Chars>, current: char, fun: F) -> String
-where
-    F: Fn(&char) -> bool,
-{
+// &mut Peekable<impl Iterator<Item = char>>
+fn read_until(chars: &mut Peekable<Chars>, fun: impl Fn(char) -> bool) -> String {
     let mut out = String::new();
-    out.push(current);
 
-    while let Some(next) = chars.peek() {
+    while let Some(&next) = chars.peek() {
         if !fun(next) {
             break;
         }
-        out.push(*next);
+        out.push(next);
         chars.next();
     }
     out
