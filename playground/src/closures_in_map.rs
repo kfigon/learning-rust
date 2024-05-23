@@ -2,33 +2,42 @@
 mod test {
     use std::collections::HashMap;
 
-    type Closure = dyn Fn(&Foo) -> String;
-    struct Foo {
+    // immutable is easy, stuff everything in single struct. Mutable is hard
+    // my first attempt was to store map in Functions struct. This is invalid from ownership perspective. we need some parent
+
+    type Closure = dyn Fn(&mut Functions) -> String;
+    struct Callbacks {
         map: HashMap<String, Box<Closure>>,
     }
 
-    impl Foo {
+    impl Callbacks {
         fn new() -> Self {
-            let mut map: HashMap<String, Box<Closure>> = HashMap::new();
-            map.insert("foobar".to_string(), Box::new(&Foo::foobar));
-            map.insert("asdf".to_string(), Box::new(&Foo::asdf));
+            let mut map: HashMap<String, Box<Closure>> = HashMap::new(); // from_iter doesnt work
+            map.insert("foobar".to_string(), Box::new(Functions::foobar));
+            map.insert("asdf".to_string(), Box::new(Functions::asdf));
 
             Self { map }
         }
+    }
 
-        fn foobar(&self) -> String {
+    struct Functions;
+    impl Functions {
+        fn foobar(&mut self) -> String {
             "Foobar".to_string()
         }
 
-        fn asdf(&self) -> String {
+        fn asdf(&mut self) -> String {
             "Asdf".to_string()
         }
     }
 
     #[test]
     fn map_closures() {
-        let f = Foo::new();
-        assert_eq!(f.map.get("foobar").unwrap()(&f), "Foobar");
-        assert_eq!(f.map.get("asdf").unwrap()(&f), "Asdf");
+        let mut f = Functions;
+        let map = Callbacks::new();
+        let func = map.map.get("foobar").unwrap(); // map borrow happens here
+        let res = func(&mut f);
+        assert_eq!(res, "Foobar");
+        assert_eq!(map.map.get("asdf").unwrap()(&mut f), "Asdf"); // again - it's shared ref, so it's ok
     }
 }
