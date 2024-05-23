@@ -1,28 +1,28 @@
-mod methods;
+mod async_learn;
 mod bencode;
+mod cli_parse;
+mod closures;
+mod closures_in_map;
+mod errors;
 mod fan_out;
+mod graph;
+mod http_server;
+mod indexer;
+mod io;
 mod iterators;
 mod linked_list;
-mod splitter;
-mod trie;
-mod graph;
-mod simple_lexer;
-mod tree;
-mod smart_pointers;
-mod traits;
-mod ref_traits;
-mod closures;
-mod indexer;
-mod cli_parse;
-mod io;
-mod http_server;
-mod threads;
-mod async_learn;
 mod macros;
-mod errors;
-mod tree_array;
+mod methods;
 mod more_smart_pointers;
-
+mod ref_traits;
+mod simple_lexer;
+mod smart_pointers;
+mod splitter;
+mod threads;
+mod traits;
+mod tree;
+mod tree_array;
+mod trie;
 
 fn main() {
     println!("hello");

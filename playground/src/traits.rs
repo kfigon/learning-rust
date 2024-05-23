@@ -56,7 +56,15 @@ mod tests {
 
         let refs: Vec<&dyn Doer> = vec![&x1, &x2, &x3, &x4];
 
-        assert_eq!(refs.iter().map(|v| v.do_it()).collect::<Vec<String>>(), vec!["foo".to_string(), "bar".to_string(), "asd".to_string(), "4".to_string()]);
+        assert_eq!(
+            refs.iter().map(|v| v.do_it()).collect::<Vec<String>>(),
+            vec![
+                "foo".to_string(),
+                "bar".to_string(),
+                "asd".to_string(),
+                "4".to_string()
+            ]
+        );
     }
 
     #[test]
@@ -68,7 +76,15 @@ mod tests {
             Box::new(Data2(4)),
         ];
 
-        assert_eq!(boxed.iter().map(|v| v.do_it()).collect::<Vec<String>>(), vec!["foo".to_string(), "bar".to_string(), "asd".to_string(), "4".to_string()]);
+        assert_eq!(
+            boxed.iter().map(|v| v.do_it()).collect::<Vec<String>>(),
+            vec![
+                "foo".to_string(),
+                "bar".to_string(),
+                "asd".to_string(),
+                "4".to_string()
+            ]
+        );
     }
 }
 
@@ -77,11 +93,12 @@ mod trait_bounds_tests {
 
     struct HashWrapper<T>(HashSet<T>);
 
-    impl<T> HashWrapper<T> 
-    where 
+    impl<T> HashWrapper<T>
+    where
         T: PartialEq,
         T: Hash,
-        T: Eq {
+        T: Eq,
+    {
         fn new(s: impl Iterator<Item = T>) -> HashWrapper<T> {
             HashWrapper(HashSet::from_iter(s))
         }
@@ -97,53 +114,66 @@ mod trait_bounds_tests {
         assert_eq!(h.0.len(), 3);
     }
 
-
     #[derive(PartialEq, Eq, Debug)]
     struct Entry<T> {
         actual: usize,
         unique: usize,
-        first: Option<T>
+        first: Option<T>,
     }
 
-    impl<T> Entry<T> 
-    where T: PartialEq + Hash + Eq {
+    impl<T> Entry<T>
+    where
+        T: PartialEq + Hash + Eq,
+    {
         fn new(v: impl Iterator<Item = T> + Clone) -> Entry<T> {
             let unique = HashSet::<T>::from_iter(v.clone()).len();
             let actual = v.clone().count();
             let first = v.clone().next();
 
-            Entry { actual, unique, first }
+            Entry {
+                actual,
+                unique,
+                first,
+            }
         }
     }
 
     #[test]
     fn entry_str() {
         let e = Entry::new("foo".chars());
-        assert_eq!(e, Entry {
-            actual: 3,
-            unique: 2,
-            first: Some('f')
-        });
+        assert_eq!(
+            e,
+            Entry {
+                actual: 3,
+                unique: 2,
+                first: Some('f')
+            }
+        );
     }
 
     #[test]
     fn entry_strings() {
         let e = Entry::new(vec!["foo", "bar", "foo"].into_iter());
-        assert_eq!(e, Entry {
-            actual: 3,
-            unique: 2,
-            first: Some("foo")
-        });
+        assert_eq!(
+            e,
+            Entry {
+                actual: 3,
+                unique: 2,
+                first: Some("foo")
+            }
+        );
     }
 
     #[test]
     fn entry_ints() {
         let e = Entry::new(vec![123, 432, 1, 2, 2].into_iter());
-        assert_eq!(e, Entry {
-            actual: 5,
-            unique: 4,
-            first: Some(123)
-        });
+        assert_eq!(
+            e,
+            Entry {
+                actual: 5,
+                unique: 4,
+                first: Some(123)
+            }
+        );
     }
-
 }

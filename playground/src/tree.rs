@@ -7,7 +7,7 @@ struct Node {
 type Link = Option<Box<Node>>;
 
 struct Tree {
-    root: Link
+    root: Link,
 }
 
 impl Tree {
@@ -16,12 +16,12 @@ impl Tree {
     }
 
     fn add(&mut self, v: i32) {
-        let new_node = Some(Box::new(Node{
+        let new_node = Some(Box::new(Node {
             val: v,
             left: None,
-            right: None
+            right: None,
         }));
-        
+
         if self.root.is_none() {
             self.root = new_node;
             return;
@@ -54,7 +54,7 @@ impl Tree {
                     dfs(&d.left, out);
                     out.push(d.val);
                     dfs(&d.right, out);
-                },
+                }
             }
         }
         dfs(&self.root, &mut out);
@@ -76,5 +76,5 @@ fn non_empty_tree() {
     t.add(3);
     t.add(2);
     t.add(4);
-    assert_eq!(t.collect(), vec![1,2,3,4,5]);
+    assert_eq!(t.collect(), vec![1, 2, 3, 4, 5]);
 }

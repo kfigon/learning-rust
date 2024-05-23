@@ -13,7 +13,10 @@ struct Trie {
 
 impl Node {
     fn new() -> Self {
-        Self { children: HashMap::new(), is_end: false }
+        Self {
+            children: HashMap::new(),
+            is_end: false,
+        }
     }
 }
 
@@ -50,9 +53,9 @@ impl Trie {
     fn add(&mut self, s: &str) {
         let mut n = &mut self.root;
 
-        for (i, c) in  s.char_indices() {
+        for (i, c) in s.char_indices() {
             let new_node = n.children.entry(c).or_insert(Node::new());
-            if i == s.len() -1 {
+            if i == s.len() - 1 {
                 new_node.is_end = true;
             }
             n = new_node;
@@ -84,7 +87,7 @@ fn multiple_trie() {
     t.add("hi");
     t.add("hello");
     t.add("hell");
-    
+
     assert_eqq(t.find("a"), vec!["apple", "ape"]);
     assert_eqq(t.find("ap"), vec!["apple", "ape"]);
     assert_eqq(t.find("app"), vec!["apple"]);
@@ -96,6 +99,10 @@ fn multiple_trie() {
 
 fn assert_eqq(first: Vec<String>, second: Vec<&str>) {
     assert_eq!(first.len(), second.len());
-    first.iter().for_each(|v| assert!(second.contains(&v.as_str())));
-    second.iter().for_each(|&v| assert!(first.contains(&String::from(v))));
+    first
+        .iter()
+        .for_each(|v| assert!(second.contains(&v.as_str())));
+    second
+        .iter()
+        .for_each(|&v| assert!(first.contains(&String::from(v))));
 }

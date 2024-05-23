@@ -4,7 +4,7 @@ mod cell_tests {
 
     // when we want to mutate things through shared (immutable) reference
     // cell is just place in memory
-    
+
     // used with Rc to store something in multiple places that can mutate it
     #[test]
     fn basic_cell() {
@@ -27,7 +27,7 @@ mod cell_tests {
     }
 
     struct Foo {
-        v: Cell<i32>
+        v: Cell<i32>,
     }
 
     impl Foo {
@@ -43,7 +43,7 @@ mod cell_tests {
 
     #[test]
     fn cell_struct() {
-        let f = Foo{v: Cell::new(123)};
+        let f = Foo { v: Cell::new(123) };
         f.set(3);
 
         assert_eq!(3, f.get())
@@ -60,7 +60,7 @@ mod refcell_tests {
     fn basic_refcell() {
         let r = RefCell::new(String::from("foo"));
 
-        // immutable, shared references, but we can mutate underneath data. This is similar how references 
+        // immutable, shared references, but we can mutate underneath data. This is similar how references
         // work in other languages
         let x = &r;
         let y = &r;
@@ -74,7 +74,7 @@ mod refcell_tests {
     }
 
     struct Foo<'a> {
-        v: RefCell<&'a i32>
+        v: RefCell<&'a i32>,
     }
 
     impl<'a> Foo<'a> {
@@ -88,7 +88,9 @@ mod refcell_tests {
     fn refcell_struct() {
         let i = 123;
 
-        let f = Foo{v: RefCell::new(&i)};
+        let f = Foo {
+            v: RefCell::new(&i),
+        };
         f.set(&3);
 
         assert_eq!(i, 123);
@@ -97,4 +99,4 @@ mod refcell_tests {
 }
 
 // COW - copy on write. A type that encodes wheater we have owned or borrowed data. We can accept both then
-// AsRef - 
+// AsRef -

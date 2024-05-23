@@ -1,6 +1,5 @@
 use std::{iter::Peekable, str::Chars};
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -19,7 +18,7 @@ mod tests {
         ];
         assert_eq!(lexer(input), expected);
     }
-    
+
     #[test]
     fn lex2() {
         let input = "let xd=15 ==31);";
@@ -58,20 +57,24 @@ fn lexer(input: &str) -> Vec<Token> {
             continue;
         } else if current_char == ';' {
             out.push(Token::Semicolon(current_char.to_string()));
-        }else if current_char == '(' || current_char == '{' {
+        } else if current_char == '(' || current_char == '{' {
             out.push(Token::Opening(current_char.to_string()));
         } else if current_char == ')' || current_char == '}' {
             out.push(Token::Closing(current_char.to_string()));
-        } else if current_char == '+' || current_char == '-' || current_char == '/' || current_char == '*' {
+        } else if current_char == '+'
+            || current_char == '-'
+            || current_char == '/'
+            || current_char == '*'
+        {
             out.push(Token::Operator(current_char.to_string()));
         } else if current_char == '=' {
-            let word = read_until(&mut chars, current_char,|c| c == '=');
+            let word = read_until(&mut chars, current_char, |c| c == '=');
             out.push(Token::Operator(word)); // == or =
         } else if current_char.is_ascii_digit() {
-            let num = read_until(&mut chars, current_char,|c| c.is_ascii_digit());
+            let num = read_until(&mut chars, current_char, |c| c.is_ascii_digit());
             out.push(Token::Number(num));
         } else {
-            let word = read_until(&mut chars, current_char,|c| c.is_alphabetic());
+            let word = read_until(&mut chars, current_char, |c| c.is_alphabetic());
             if is_keyword(&word) {
                 out.push(Token::Keyword(word));
             } else {
@@ -83,8 +86,10 @@ fn lexer(input: &str) -> Vec<Token> {
     out
 }
 
-fn read_until<F>(chars: &mut Peekable<Chars>, current_char: char, fun: F) -> String 
-    where F: Fn(char) -> bool {
+fn read_until<F>(chars: &mut Peekable<Chars>, current_char: char, fun: F) -> String
+where
+    F: Fn(char) -> bool,
+{
     let mut out = String::new();
     out.push(current_char);
 

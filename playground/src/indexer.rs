@@ -10,9 +10,9 @@ Phasellus diam mi, cursus eu est vel, euismod bibendum enim. Quisque suscipit cu
 
 Morbi hendrerit consequat hendrerit. Vivamus pharetra posuere facilisis. Etiam dui sapien, sagittis vitae fringilla vitae, varius et nisi. Integer mi dui, finibus a tincidunt nec, eleifend eget neque. Cras nec tellus blandit, dictum augue et, interdum dui. Morbi tempor auctor augue at dictum. Suspendisse id cursus ligula. Duis vehicula volutpat diam, congue sodales justo feugiat sed. Curabitur posuere, mi sed elementum rhoncus, magna nisi auctor nunc, eu fermentum lectus ex at purus. Fusce dictum molestie dui, ut fringilla ipsum maximus ullamcorper. Nam nibh arcu, placerat faucibus imperdiet et, sodales mattis ex. Integer at ligula lacinia, lacinia sem sit amet, consequat dui. Vestibulum in ipsum sit amet justo sollicitudin facilisis. In ultricies malesuada sapien vel faucibus. Nam pulvinar arcu et tortor convallis lobortis. Fusce sagittis, nulla nec rhoncus pellentesque, augue eros mattis mi, at euismod diam neque in sapien.";
 
-
-fn index(text: &str, limit: usize) -> Vec<(String, usize)>{
-     let map: HashMap<String, usize> = text.split_whitespace()
+fn index(text: &str, limit: usize) -> Vec<(String, usize)> {
+    let map: HashMap<String, usize> = text
+        .split_whitespace()
         .map(&str::to_lowercase)
         .map(|word| word.replace(|c: char| !c.is_alphanumeric(), ""))
         .fold(HashMap::new(), |mut m, w| {
@@ -23,16 +23,17 @@ fn index(text: &str, limit: usize) -> Vec<(String, usize)>{
     let mut sorted: Vec<(&String, &usize)> = map.iter().collect();
 
     // sort by size (and name if equal)
-    sorted.sort_by(|a, b| {
-        match b.1.cmp(a.1) {
-            std::cmp::Ordering::Equal => b.0.cmp(a.0),
-            r => r
-        }
+    sorted.sort_by(|a, b| match b.1.cmp(a.1) {
+        std::cmp::Ordering::Equal => b.0.cmp(a.0),
+        r => r,
     });
 
     match sorted.windows(limit).next() {
         None => vec![],
-        Some(v) => v.iter().map(|entry| (entry.0.to_string(), *entry.1)).collect()
+        Some(v) => v
+            .iter()
+            .map(|entry| (entry.0.to_string(), *entry.1))
+            .collect(),
     }
 }
 
@@ -43,11 +44,14 @@ mod tests {
     #[test]
     fn lorem_test() {
         let res = index(DATA, 3);
-        
-        assert_eq!(res, vec![
-            ("at".to_string(), 13),
-            ("in".to_string(), 12),
-            ("sit".to_string(), 9),
-        ]);
+
+        assert_eq!(
+            res,
+            vec![
+                ("at".to_string(), 13),
+                ("in".to_string(), 12),
+                ("sit".to_string(), 9),
+            ]
+        );
     }
 }

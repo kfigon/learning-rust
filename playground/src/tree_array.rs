@@ -1,15 +1,14 @@
-
 #[derive(Debug)]
 struct Tree<T> {
-    table: Vec<Option<T>>
+    table: Vec<Option<T>>,
 }
 
-impl<T> Tree<T> 
-where T: Ord {
+impl<T> Tree<T>
+where
+    T: Ord,
+{
     fn new() -> Tree<T> {
-        Tree{
-            table: vec![]
-        }
+        Tree { table: vec![] }
     }
 
     fn insert(&mut self, v: T) {
@@ -19,12 +18,13 @@ where T: Ord {
             match self.table.get_mut(id) {
                 None => {
                     if id >= self.table.len() {
-                        self.table.resize_with(id+1, Default::default);
+                        self.table.resize_with(id + 1, Default::default);
                     }
                 }
                 Some(Some(el)) if new_elem.as_ref().unwrap() > el => id = Tree::<T>::right(id),
                 Some(Some(_)) => id = Tree::<T>::left(id),
-                Some(el) => { // Some(None)
+                Some(el) => {
+                    // Some(None)
                     *el = new_elem;
                     break;
                 }
@@ -39,10 +39,10 @@ where T: Ord {
     //  7  8  9 10   11 12  13 14
 
     fn left(id: usize) -> usize {
-        id*2+1
+        id * 2 + 1
     }
     fn right(id: usize) -> usize {
-        (id+1)*2
+        (id + 1) * 2
     }
 }
 
@@ -81,10 +81,28 @@ mod tests {
     #[test]
     fn insert_test() {
         let mut t = Tree::<i32>::new();
-        for i in [4,5,1,18,10] {
+        for i in [4, 5, 1, 18, 10] {
             t.insert(i);
         }
 
-        assert_eq!(t.table, vec![Some(4),Some(1),Some(5),None,None,None,Some(18),None,None,None,None,None,None,Some(10)]);
+        assert_eq!(
+            t.table,
+            vec![
+                Some(4),
+                Some(1),
+                Some(5),
+                None,
+                None,
+                None,
+                Some(18),
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                Some(10)
+            ]
+        );
     }
 }

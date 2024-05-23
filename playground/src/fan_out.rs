@@ -1,15 +1,15 @@
-use std::{thread, vec};
 use std::sync::mpsc::channel;
+use std::{thread, vec};
 
 fn get_results() -> Vec<String> {
-
     let (tx, rx) = channel::<String>();
-    let requests = vec![1,2,3,4,5,6];
+    let requests = vec![1, 2, 3, 4, 5, 6];
     let req_len = requests.len();
 
     for i in requests {
         let t = tx.clone();
-        thread::spawn(move || { // we need to move sender channel. Incidentally also requests are moved
+        thread::spawn(move || {
+            // we need to move sender channel. Incidentally also requests are moved
             t.send(i.to_string()).unwrap();
         });
     }
@@ -28,5 +28,5 @@ fn aggregator() {
     let mut r = get_results();
     r.sort();
 
-    assert_eq!(r, vec!["1","2","3","4","5","6"]);
+    assert_eq!(r, vec!["1", "2", "3", "4", "5", "6"]);
 }

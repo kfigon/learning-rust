@@ -1,7 +1,7 @@
 #[derive(Debug)]
 struct Rectangle {
     width: usize,
-    height: usize
+    height: usize,
 }
 
 impl Rectangle {
@@ -10,7 +10,10 @@ impl Rectangle {
     }
 
     fn new(w: usize, h: usize) -> Self {
-        Rectangle { width: w, height: h }
+        Rectangle {
+            width: w,
+            height: h,
+        }
     }
 }
 
@@ -22,13 +25,13 @@ impl ToString for Rectangle {
 
 #[test]
 fn rectangle_area() {
-    let rec = Rectangle::new(2,3);
+    let rec = Rectangle::new(2, 3);
     assert_eq!(6, rec.area());
     assert_eq!(6, rec.area());
 }
 
 #[test]
 fn rectangle_trait() {
-    let rec = Rectangle::new(2,3);
+    let rec = Rectangle::new(2, 3);
     assert_eq!("2,3", rec.to_string());
 }

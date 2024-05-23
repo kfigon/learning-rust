@@ -32,7 +32,7 @@ mod tests {
             v
         };
 
-        assert_eq!(inc(), "hello world".to_string());        
+        assert_eq!(inc(), "hello world".to_string());
         // assert_eq!(v, "hello".to_string()); // compilation fail - borrow after move
     }
 }

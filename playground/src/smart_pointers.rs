@@ -1,15 +1,18 @@
 #[cfg(test)]
 mod test {
-    use std::{rc::Rc, cell::Cell};
+    use std::{cell::Cell, rc::Rc};
 
     struct Data {
         a: String,
-        b: Vec<Rc<Data>>
+        b: Vec<Rc<Data>>,
     }
 
     impl Data {
         fn new(v: &str) -> Self {
-            Self { a: String::from(v), b: vec![] }
+            Self {
+                a: String::from(v),
+                b: vec![],
+            }
         }
     }
 
@@ -33,13 +36,19 @@ mod test {
         // clone does not copy the data, just bumps the counter
         owner1.b.push(base.clone());
         owner2.b.push(base.clone());
-        assert_eq!(owner1.b.iter().map(|v| v.a.as_str()).collect::<Vec<&str>>(), vec!["data"]);
-        assert_eq!(owner2.b.iter().map(|v| v.a.as_str()).collect::<Vec<&str>>(), vec!["data"]);
+        assert_eq!(
+            owner1.b.iter().map(|v| v.a.as_str()).collect::<Vec<&str>>(),
+            vec!["data"]
+        );
+        assert_eq!(
+            owner2.b.iter().map(|v| v.a.as_str()).collect::<Vec<&str>>(),
+            vec!["data"]
+        );
         assert_eq!(Rc::strong_count(&base), 3);
     }
 
     #[derive(Debug, Clone, Copy, PartialEq)]
-    struct V(i32,i32,i32);
+    struct V(i32, i32, i32);
 
     struct Owner {
         v: Cell<V>,
@@ -50,9 +59,9 @@ mod test {
         // for interior mutability - if we have a readonly data, bt ut we still want to mutate it. It's moving borrow checker to the runtime
         // RefCell - for references
         // Cell - for copyable types
-        let v = Cell::new(V(1,2,3));
-        let o = Owner{v}; // v is immutable, but I can still change it
-        
+        let v = Cell::new(V(1, 2, 3));
+        let o = Owner { v }; // v is immutable, but I can still change it
+
         {
             let mut data = o.v.get();
             data.0 = 5;
@@ -61,6 +70,6 @@ mod test {
 
             o.v.set(data);
         }
-        assert_eq!(o.v.get(), V(5,6,7))
+        assert_eq!(o.v.get(), V(5, 6, 7))
     }
 }

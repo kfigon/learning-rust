@@ -1,5 +1,4 @@
-use std::collections::{HashMap,HashSet};
-
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug)]
 struct Graph(HashMap<String, HashSet<String>>);
@@ -10,12 +9,18 @@ impl Graph {
     }
 
     fn connect(&mut self, a: &str, b: &str) {
-        self.0.entry(a.to_string())
-            .and_modify(|s| { s.insert(b.to_string()); })
+        self.0
+            .entry(a.to_string())
+            .and_modify(|s| {
+                s.insert(b.to_string());
+            })
             .or_insert(HashSet::from([b.to_string()]));
 
-        self.0.entry(b.to_string())
-            .and_modify(|s| { s.insert(a.to_string()); })
+        self.0
+            .entry(b.to_string())
+            .and_modify(|s| {
+                s.insert(a.to_string());
+            })
             .or_insert(HashSet::from([a.to_string()]));
     }
 
@@ -42,12 +47,7 @@ impl Graph {
 
 #[test]
 fn graph_works() {
-    let data = vec![
-        ("A","B"),
-        ("A","C"),
-        ("C","D"),
-        ("E","F"),
-    ];
+    let data = vec![("A", "B"), ("A", "C"), ("C", "D"), ("E", "F")];
     let mut g = Graph::new();
     data.iter().for_each(|d| g.connect(d.0, d.1));
     assert_eq!(g.collect(), vec!["A", "B", "C", "D", "E", "F"])

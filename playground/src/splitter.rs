@@ -1,11 +1,14 @@
-struct Splitter<'a,'b> {
+struct Splitter<'a, 'b> {
     input: &'a str,
     delimiter: &'b str,
 }
 
-impl<'a,'b> Splitter<'a,'b> {
+impl<'a, 'b> Splitter<'a, 'b> {
     fn new(input: &'a str, delim: &'b str) -> Self {
-        Self { input: input, delimiter: delim }
+        Self {
+            input: input,
+            delimiter: delim,
+        }
     }
 
     fn split(&self) -> Vec<&'a str> {

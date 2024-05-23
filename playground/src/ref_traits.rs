@@ -28,8 +28,8 @@ mod tests {
 
     #[test]
     fn deref_test() {
-        let d = WrapArray{
-            data: vec![4,5,6],
+        let d = WrapArray {
+            data: vec![4, 5, 6],
             idx: 2,
         };
 

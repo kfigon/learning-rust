@@ -31,32 +31,54 @@ fn decode_dict_test() {
         ("bar".to_owned(), BencodeObj::Str("oopsie".to_owned())),
     ]);
 
-    assert_eq!(Ok(BencodeObj::Dict(hash)), decode_generic_str("d3:fooi2e3:bar6:oopsiee"));
+    assert_eq!(
+        Ok(BencodeObj::Dict(hash)),
+        decode_generic_str("d3:fooi2e3:bar6:oopsiee")
+    );
 }
 
 #[test]
 fn decode_nested_dict_test() {
     let hash: HashMap<String, BencodeObj> = HashMap::from([
         ("foo".to_owned(), BencodeObj::Int(2)),
-        ("bar".to_owned(), BencodeObj::List(vec![
-            BencodeObj::Str("oopsie".to_owned()),
-            BencodeObj::Int(5),
-            BencodeObj::Dict(HashMap::from([
-                ("x".to_owned(), BencodeObj::Int(123)),
-            ]))
-        ])),
+        (
+            "bar".to_owned(),
+            BencodeObj::List(vec![
+                BencodeObj::Str("oopsie".to_owned()),
+                BencodeObj::Int(5),
+                BencodeObj::Dict(HashMap::from([("x".to_owned(), BencodeObj::Int(123))])),
+            ]),
+        ),
     ]);
 
-    assert_eq!(Ok(BencodeObj::Dict(hash)), decode_generic_str("d3:fooi2e3:barl6:oopsiei5ed1:xi123eeee"));
+    assert_eq!(
+        Ok(BencodeObj::Dict(hash)),
+        decode_generic_str("d3:fooi2e3:barl6:oopsiei5ed1:xi123eeee")
+    );
 }
 
 #[test]
 fn decode_str_test() {
-    assert_eq!(Ok(BencodeObj::Str("foo".to_owned())), decode_generic_str("3:foo"));
-    assert_eq!(Ok(BencodeObj::Str("asdfgqwe123r".to_owned())), decode_generic_str("12:asdfgqwe123r"));
-    assert_eq!(Ok(BencodeObj::Str("1234".to_owned())), decode_generic_str("4:1234"));
-    assert_eq!(Ok(BencodeObj::Str("4:foo".to_owned())), decode_generic_str("5:4:foo"));
-    assert_eq!(Ok(BencodeObj::Str("4:fo".to_owned())), decode_generic_str("4:4:foo"));
+    assert_eq!(
+        Ok(BencodeObj::Str("foo".to_owned())),
+        decode_generic_str("3:foo")
+    );
+    assert_eq!(
+        Ok(BencodeObj::Str("asdfgqwe123r".to_owned())),
+        decode_generic_str("12:asdfgqwe123r")
+    );
+    assert_eq!(
+        Ok(BencodeObj::Str("1234".to_owned())),
+        decode_generic_str("4:1234")
+    );
+    assert_eq!(
+        Ok(BencodeObj::Str("4:foo".to_owned())),
+        decode_generic_str("5:4:foo")
+    );
+    assert_eq!(
+        Ok(BencodeObj::Str("4:fo".to_owned())),
+        decode_generic_str("4:4:foo")
+    );
     assert_eq!(Err(ErrorMsg("invalid str")), decode_generic_str("0:asd"));
     assert_eq!(Err(ErrorMsg("invalid str")), decode_generic_str("-1:"));
     assert_eq!(Err(ErrorMsg("invalid str")), decode_generic_str("0"));
@@ -69,51 +91,64 @@ fn decode_str_test() {
 fn encode_object_test() {
     assert_eq!(BencodeObj::Str("foo".to_owned()).encode(), "3:foo");
     assert_eq!(BencodeObj::Int(123).encode(), "i123e");
-    
-    assert_eq!(BencodeObj::List(vec![
-        BencodeObj::Int(12),
-        BencodeObj::Int(2),
-        BencodeObj::Str("str".to_owned()),
-    ]).encode(), "li12ei2e3:stre");
-    
-    assert_eq!(BencodeObj::List(vec![
-        BencodeObj::Int(12),
+
+    assert_eq!(
         BencodeObj::List(vec![
+            BencodeObj::Int(12),
             BencodeObj::Int(2),
             BencodeObj::Str("str".to_owned()),
-        ]),
-    ]).encode(), "li12eli2e3:stree");
+        ])
+        .encode(),
+        "li12ei2e3:stre"
+    );
 
-    let hash: HashMap<String, BencodeObj> = HashMap::from([
-        ("bar".to_owned(), BencodeObj::List(vec![
+    assert_eq!(
+        BencodeObj::List(vec![
+            BencodeObj::Int(12),
+            BencodeObj::List(vec![BencodeObj::Int(2), BencodeObj::Str("str".to_owned()),]),
+        ])
+        .encode(),
+        "li12eli2e3:stree"
+    );
+
+    let hash: HashMap<String, BencodeObj> = HashMap::from([(
+        "bar".to_owned(),
+        BencodeObj::List(vec![
             BencodeObj::Str("oopsie".to_owned()),
             BencodeObj::Int(5),
-            BencodeObj::Dict(HashMap::from([
-                ("x".to_owned(), BencodeObj::Int(123)),
-            ]))
-        ]))
-    ]);
+            BencodeObj::Dict(HashMap::from([("x".to_owned(), BencodeObj::Int(123))])),
+        ]),
+    )]);
 
-    assert_eq!(BencodeObj::Dict(hash).encode(), "d3:barl6:oopsiei5ed1:xi123eeee");
+    assert_eq!(
+        BencodeObj::Dict(hash).encode(),
+        "d3:barl6:oopsiei5ed1:xi123eeee"
+    );
 }
 
 #[test]
 fn decode_list_test() {
-    assert_eq!(Ok(BencodeObj::List(vec![
-        BencodeObj::Int(12),
-        BencodeObj::Int(2),
-        BencodeObj::Str("str".to_owned()),
-    ])), decode_generic_str("li12ei2e3:stre"));
-    
-    assert_eq!(Ok(BencodeObj::List(vec![
-        BencodeObj::Int(12),
-        BencodeObj::List(vec![
+    assert_eq!(
+        Ok(BencodeObj::List(vec![
+            BencodeObj::Int(12),
             BencodeObj::Int(2),
             BencodeObj::Str("str".to_owned()),
-        ]),
-    ])), decode_generic_str("li12eli2e3:stree"));
+        ])),
+        decode_generic_str("li12ei2e3:stre")
+    );
 
-    assert_eq!(Err(ErrorMsg("invalid list")), decode_generic_str("li1ei2e3:str"));
+    assert_eq!(
+        Ok(BencodeObj::List(vec![
+            BencodeObj::Int(12),
+            BencodeObj::List(vec![BencodeObj::Int(2), BencodeObj::Str("str".to_owned()),]),
+        ])),
+        decode_generic_str("li12eli2e3:stree")
+    );
+
+    assert_eq!(
+        Err(ErrorMsg("invalid list")),
+        decode_generic_str("li1ei2e3:str")
+    );
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -177,9 +212,9 @@ fn decode_str(s: &str) -> Result<String, ErrorMsg> {
 #[allow(dead_code)]
 #[derive(Debug, PartialEq, Eq)]
 enum BencodeObj {
-    Str(String), // 3:foo
-    Int(i32), //i1234e
-    List(Vec<BencodeObj>), //l i1e i2e 3:str e // without spaces
+    Str(String),                       // 3:foo
+    Int(i32),                          //i1234e
+    List(Vec<BencodeObj>),             //l i1e i2e 3:str e // without spaces
     Dict(HashMap<String, BencodeObj>), //d 3:foo i1e 3:str 3:foo e // without spaces
 }
 
@@ -191,11 +226,13 @@ impl BencodeObj {
             BencodeObj::List(v) => {
                 let els = v.iter().map(|el| el.encode());
                 format!("l{}e", els.collect::<String>())
-            },
+            }
             BencodeObj::Dict(v) => {
-                let els = v.iter().map(|(key, val)| format!("{}{}", encode_str(key), val.encode()));
+                let els = v
+                    .iter()
+                    .map(|(key, val)| format!("{}{}", encode_str(key), val.encode()));
                 format!("d{}e", els.collect::<String>())
-            },
+            }
         }
     }
 }
@@ -272,7 +309,7 @@ fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
             for _ in 0..s.len() {
                 chars.next();
             }
-        },
+        }
         BencodeObj::Int(i) => {
             chars.next();
             advance_for_len(*i, chars);
@@ -285,7 +322,7 @@ fn advance_iter(chars: &mut Chars, obj: &BencodeObj) {
                 advance_iter(chars, &el)
             }
             chars.next();
-        },
+        }
         BencodeObj::Dict(v) => {
             chars.next();
             for el in v {

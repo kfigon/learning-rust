@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use std::collections::{HashSet, HashMap};
+    use std::collections::{HashMap, HashSet};
 
     // declarative macros - code generation. This mod is all declarative
     // procedural macros - more advanced things. Not covered here
@@ -44,7 +44,7 @@ mod test {
         exp.insert(1);
         exp.insert(2);
 
-        let v = hash_set!(1,2,4,1);
+        let v = hash_set!(1, 2, 4, 1);
 
         assert_eq!(exp, v);
     }
@@ -60,8 +60,8 @@ mod test {
 
     #[test]
     fn vec_test() {
-        let x = a_vector!(1,2,3);
-        assert_eq!(x, vec![1,2,3])
+        let x = a_vector!(1, 2, 3);
+        assert_eq!(x, vec![1, 2, 3])
     }
 
     macro_rules! make_struct {
@@ -78,15 +78,9 @@ mod test {
     fn make_struct_test() {
         make_struct!(TheName, u8, u8);
 
-        let s = TheName {
-            min: 3,
-            max: 5
-        };
+        let s = TheName { min: 3, max: 5 };
 
-        let other = TheName {
-            min: 3,
-            max: 5
-        };
+        let other = TheName { min: 3, max: 5 };
 
         assert_eq!(s, other);
     }
@@ -118,7 +112,7 @@ mod test {
         Bool(bool),
         Int(i32),
         Str(String),
-        Obj(HashMap<String, Json>)
+        Obj(HashMap<String, Json>),
     }
     // these impls can be done with macro
     macro_rules! conversion_to_json {
@@ -127,7 +121,7 @@ mod test {
                 fn from(value: $type) -> Self {
                     Json::$json_type(value)
                 }
-            }        
+            }
         };
     }
     conversion_to_json!(bool, Bool);
@@ -142,7 +136,7 @@ mod test {
 
     macro_rules! json {
         ( null ) => { Json::Null };
-        ( { $( $key:tt : $val:tt ),* } ) => { 
+        ( { $( $key:tt : $val:tt ),* } ) => {
             Json::Obj(
                 HashMap::from(
                     [ $( ($key.to_string(), json!($val)) ),* ]
@@ -154,19 +148,19 @@ mod test {
 
     #[test]
     fn json_dsl_test() {
-        let exp = Json::Obj(
-            HashMap::from([
-                ("oops".to_string(), Json::Null),
-                ("xxx".to_string(), Json::Str("a string".to_string())),
-                ("foo".to_string(), Json::Bool(true)),
-                ("bar".to_string(), Json::Int(123)),
-                ("asd".to_string(), Json::Obj(
-                    HashMap::from([
-                        ("x".to_string(), Json::Str("the value".to_string()))
-                    ])
-                )),
-            ])
-        );
+        let exp = Json::Obj(HashMap::from([
+            ("oops".to_string(), Json::Null),
+            ("xxx".to_string(), Json::Str("a string".to_string())),
+            ("foo".to_string(), Json::Bool(true)),
+            ("bar".to_string(), Json::Int(123)),
+            (
+                "asd".to_string(),
+                Json::Obj(HashMap::from([(
+                    "x".to_string(),
+                    Json::Str("the value".to_string()),
+                )])),
+            ),
+        ]));
 
         let got = json!({
             "oops": null,
@@ -180,7 +174,6 @@ mod test {
 
         assert_eq!(exp, got);
     }
-
 
     // so I dont need to worry about .to_string() all the time
     macro_rules! make_hash {
@@ -205,4 +198,3 @@ mod test {
         assert_eq!(v, exp)
     }
 }
-

@@ -1,10 +1,10 @@
 struct Node {
     val: i32,
-    next: Option<Box<Node>>
+    next: Option<Box<Node>>,
 }
 
 struct LinkedList {
-    head: Option<Box<Node>>
+    head: Option<Box<Node>>,
 }
 
 impl LinkedList {
@@ -13,10 +13,7 @@ impl LinkedList {
     }
 
     fn add(&mut self, v: i32) {
-        let new_node = Some(Box::new(Node {
-            val: v,
-            next: None,
-        }));
+        let new_node = Some(Box::new(Node { val: v, next: None }));
 
         if self.head.is_none() {
             self.head = new_node;
@@ -48,5 +45,5 @@ fn linked_list1() {
     l.add(2);
     l.add(5);
 
-    assert_eq!(l.collect(), vec![1,2,5]);
+    assert_eq!(l.collect(), vec![1, 2, 5]);
 }

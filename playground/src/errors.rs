@@ -1,14 +1,13 @@
 #[cfg(test)]
-mod test{
-    use std::{fs::read_to_string, num::ParseIntError, fmt::Display};
-
+mod test {
+    use std::{fmt::Display, fs::read_to_string, num::ParseIntError};
 
     #[derive(Debug, PartialEq)]
-    enum MyError{
-      GenericError(String),
-      ReadFile(String),
-      ParseError(ParseIntError),
-    } 
+    enum MyError {
+        GenericError(String),
+        ReadFile(String),
+        ParseError(ParseIntError),
+    }
 
     // so the ? operator on read_to_string for MyError
     impl From<std::io::Error> for MyError {
@@ -24,7 +23,7 @@ mod test{
         }
     }
 
-    fn do_thing() -> Result<(), MyError>{
+    fn do_thing() -> Result<(), MyError> {
         let _num = "foobar".parse::<i32>()?;
         if _num == 0 {
             return Err(MyError::GenericError("0 found".to_string()));
@@ -47,10 +46,9 @@ mod test{
         }
     }
 
-
     #[derive(Debug)]
     struct ErrorA;
-    impl std::error::Error for ErrorA{}
+    impl std::error::Error for ErrorA {}
     impl Display for ErrorA {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             f.write_str("Error A")
@@ -59,7 +57,7 @@ mod test{
 
     #[derive(Debug)]
     struct ErrorB;
-    impl std::error::Error for ErrorB{}
+    impl std::error::Error for ErrorB {}
     impl Display for ErrorB {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             f.write_str("Error B")
@@ -79,5 +77,4 @@ mod test{
         let res = get_dynamic_error(true);
         assert_eq!(res.err().unwrap().to_string(), "Error A")
     }
-
 }

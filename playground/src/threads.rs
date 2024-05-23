@@ -4,10 +4,10 @@
 
 #[cfg(test)]
 mod for_join_test {
-    use std::{sync::Arc, collections::HashSet};
+    use std::{collections::HashSet, sync::Arc};
 
-    struct BigConfig{
-        foo: String
+    struct BigConfig {
+        foo: String,
     }
 
     fn process(v: String, big_config: &BigConfig) -> Result<String, &'static str> {
@@ -20,20 +20,16 @@ mod for_join_test {
     #[test]
     fn for_join_test() {
         // we cant pass read reference to move closure, we need Arc
-        let conf = Arc::new(BigConfig{foo: "world!".to_string()});
+        let conf = Arc::new(BigConfig {
+            foo: "world!".to_string(),
+        });
 
-        let vals = vec![
-            "hello".to_string(),
-            "welcome".to_string(),
-            "".to_string()
-        ];
+        let vals = vec!["hello".to_string(), "welcome".to_string(), "".to_string()];
 
         let mut threads = vec![];
         for v in vals {
             let c = conf.clone(); // just bumps the counter, does not copy the struct. Just reference does not live long enough
-            let t = std::thread::spawn(move|| {
-                process(v, &c)
-            });
+            let t = std::thread::spawn(move || process(v, &c));
             threads.push(t);
         }
 
@@ -49,8 +45,9 @@ mod for_join_test {
                 Ok("hello world!".to_string()),
                 Ok("welcome world!".to_string()),
                 Err("invalid data"),
-            ])
-            , res);
+            ]),
+            res
+        );
     }
 }
 
@@ -58,7 +55,10 @@ mod for_join_test {
 mod test {
     // thread wrappers
 
-    use std::{sync::{Arc, Mutex}, thread};
+    use std::{
+        sync::{Arc, Mutex},
+        thread,
+    };
 
     // it's usually better to use fork-join or channels, but sometimes
     // shared state is required
@@ -75,13 +75,13 @@ mod test {
         // mutex.lock().unwrap() // deadlock - locking same mutex twice
 
         let d1 = data.clone();
-        let t1 = thread::spawn(move|| {
+        let t1 = thread::spawn(move || {
             let mut d = d1.lock().unwrap();
             d.push('!');
         });
 
         let d2 = data.clone();
-        let t2 = thread::spawn(move|| {
+        let t2 = thread::spawn(move || {
             let mut d = d2.lock().unwrap();
             d.push('!');
         });

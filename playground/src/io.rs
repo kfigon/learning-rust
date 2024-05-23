@@ -9,7 +9,7 @@ mod test {
     static PATH: &str = "src/main.rs";
 
     use std::fs::{self, File};
-    use std::io::{Read, BufReader, Write};
+    use std::io::{BufReader, Read, Write};
 
     #[test]
     fn read_helper_test() {
