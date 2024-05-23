@@ -37,14 +37,14 @@ impl<T: Iterator<Item = Token>> Parser<T> {
 
     fn parse(mut self) -> Result<Vec<SExpression>, Vec<CompilerError>> {
         while let Some(tok) = self.tokens.next() {
-            match &tok {
+            match tok {
                 Token::Opening { line } => {
                     match self.parse_exp() {
                         Ok(v) => self.expressions.push(SExpression::List(v)),
                         Err(e) => self.errors.push(e),
                     }
                 }
-                v => self.errors.push(CompilerError::InvalidToken(tok)),
+                v => self.errors.push(CompilerError::InvalidToken(v)),
             }
         }
 
@@ -58,14 +58,14 @@ impl<T: Iterator<Item = Token>> Parser<T> {
     fn parse_exp(&mut self) -> Result<Vec<SExpression>, CompilerError> {
         let mut elems = vec![];
         while let Some(next) = self.tokens.next() {
-            match &next {
+            match next {
                 Token::Closing { line } => break,
-                Token::Invalid { line, v } => return Err(CompilerError::InvalidToken(next.clone())),
-                Token::Identifier { line, v } => elems.push(SExpression::Identifier(v.clone())),
+                Token::Invalid { line, ref v } => return Err(CompilerError::InvalidToken(next)), // string is ref type, so I couldn't just move here. ref is required to not partially move `next`` to `v`
+                Token::Identifier { line, v } => elems.push(SExpression::Identifier(v)),
                 Token::Literal { line, v } => match v {
-                    lexer::Literal::Number(n) => elems.push(SExpression::Number(*n)),
-                    lexer::Literal::String(s) => elems.push(SExpression::String(s.clone())),
-                    lexer::Literal::Boolean(b) => elems.push(SExpression::Boolean(*b)),
+                    lexer::Literal::Number(n) => elems.push(SExpression::Number(n)),
+                    lexer::Literal::String(s) => elems.push(SExpression::String(s)),
+                    lexer::Literal::Boolean(b) => elems.push(SExpression::Boolean(b)),
                 },
                 Token::Opening { line } => elems.push(SExpression::List(self.parse_exp()?)),
             }
